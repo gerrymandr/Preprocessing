@@ -41,18 +41,20 @@ def fasterLookupTable(largerShapes, smallerShapes, largeIDCol, smallIDCol):
             if bj.geometry().Contains(bi.geometry()): 
                  lookupTable.append((bi, bj))
     """
+    g1 = gp.GeoSeries(smallerShapes['geometry'])
+    g2 = gp.GeoSeries(largerShapes['geometry'])
 
     for i in smallerShapes.index:
         namei = smallerShapes.loc[i, smallIDCol]
-        geomi = smallerShapes[i, 'geometry']
+        geomi = g1[i]#smallerShapes.loc[i, 'geometry']
 
         for j in largerShapes.index:
             namej = largerShapes.loc[j, largeIDCol]
-            geomj = largerShapes[j, 'geometry']
+            geomj = g2[j]#largerShapes.loc[j, 'geometry']
 
-            area = geomj.intersection(geomi).area()
+            area = geomj.intersection(geomi).area
 
-            if geomj.Contains(geomi):
+            if geomj.contains(geomi):
                 lookupTable.append((namei, namej, area))
 
     return pd.DataFrame(lookupTable, index=None, columns=["small", "large", "area"])
