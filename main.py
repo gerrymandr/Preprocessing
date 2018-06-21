@@ -14,12 +14,16 @@ small_geoid = ''
 population = ''
 voting = ''
 cond_dist = ''
-merge_basic = False
-merge_big = False
-merge_small = False
+merge_basic_flag = False
+merge_big_flag = False
+merge_small_flag = False
 basicMergePath = ''
 biggestMergePath = ''
 smallestMergePath = ''
+merge_basic_col = ''
+merge_biggest_col = ''
+merge_smallest_col = ''
+
 
 image = tkinter.PhotoImage(file="check1.png")
 check1 = tkinter.Label(image=image)
@@ -64,16 +68,21 @@ def callback():
     Main function of the Process button to pull out the text entry fields.
     :return: Strings of all the column names specified.
     '''
-    global basic_geoid, small_geoid, big_geoid, population, voting, cong_dist, merge_basic, merge_big, merge_small
+    global basic_geoid, small_geoid, big_geoid, population, voting, cong_dist, \
+        merge_basic_flag, merge_big_flag, merge_small_flag, \
+        merge_basic_col, merge_biggest_col, merge_smallest_col
     basic_geoid = geoid1.get()
     big_geoid = geoid2.get()
     small_geoid = geoid3.get()
     population = popEntry.get()
     voting = voteEntry.get()
     cong_dist = cdEntry.get()
-    merge_basic = CheckVar1.get()
-    merge_big = CheckVar2.get()
-    merge_small = CheckVar3.get()
+    merge_basic_flag = CheckVar1.get()
+    merge_big_flag = CheckVar2.get()
+    merge_small_flag = CheckVar3.get()
+    merge_basic_col = basicMergeEntry.get()
+    merge_biggest_col = bigMergeEntry.get()
+    merge_smallest_col = smallMergeEntry.get()
     top.destroy()
 
 def selectBasicMerge():
@@ -264,9 +273,12 @@ print(small_geoid)
 print(population)
 print(voting)
 print(cong_dist)
-print(merge_basic)
-print(merge_big)
-print(merge_small)
+print(merge_basic_flag)
+print(merge_big_flag)
+print(merge_small_flag)
 print(basicMergePath)
 print(biggestMergePath)
 print(smallestMergePath)
+print(merge_basic_col)
+print(merge_biggest_col)
+print(merge_smallest_col)
