@@ -5,6 +5,7 @@ from tkinter import filedialog
 top = Tk()
 top.geometry("615x325")
 top.resizable(False, False)
+top.title('Preprocess that data!')
 
 basicUnits = ''
 biggerUnits = ''
