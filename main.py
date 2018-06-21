@@ -1,6 +1,12 @@
+import numpy as np
+import pandas as pd
+import geopandas as gp
+
 from tkinter import *
 import tkinter
 from tkinter import filedialog
+
+from prorationAndRoundoff import prorateWithDFs, roundoffWithDFs, getLookupTable
 
 top = Tk()
 top.geometry("615x325")
@@ -266,6 +272,7 @@ b.place(x=500, y=250)
 top.mainloop()
 
 # All variables that get passed
+"""
 print(basicUnits)
 print(biggerUnits)
 print(smallestUnits)
@@ -284,3 +291,22 @@ print(smallestMergePath)
 print(merge_basic_col)
 print(merge_biggest_col)
 print(merge_smallest_col)
+"""
+
+basicOutputFileName="PRORATEDANDROUNDED.shp"
+
+# now read files into geodataframes
+bigDF = gp.read_file(biggerUnits)
+basicDF = gp.read_file(basicUnits)
+if len(smallestUnits)>0:
+    smallDF = gp.read_file(smallestUnits)
+else:
+    smallDF = None
+
+proratedValues = prorateWithDFs(bigDF, basicDF, smallDF, big_geoid, basic_geoid, small_geoid, population, voting)
+basicDF['voteValues'] = [proratedValues[x] for x in basicDF[basic_geoid]]
+
+roundedValues = roundoffWithDFs(basicDF, bigDF, smallDF, basic_geoid, big_geoid, small_geoid)
+basicDF['rounded'] = [roundedValues[x] for x in basicDF[basic_geoid]]
+
+basicDF.to_file(basicOutputFileName)
