@@ -3,7 +3,8 @@ import tkinter
 from tkinter import filedialog
 
 top = Tk()
-top.geometry("700x600")
+top.geometry("615x325")
+top.resizable(False, False)
 
 basicUnits = ''
 biggerUnits = ''
@@ -259,7 +260,7 @@ smallestMerge.place(x=225, y=250)
 # Creates the button to process and pass all variables
 b = Button(top, text="Process", width=10, command=callback)
 b.pack()
-b.place(x=600, y=500)
+b.place(x=500, y=250)
 
 top.mainloop()
 
