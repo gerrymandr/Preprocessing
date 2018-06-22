@@ -34,13 +34,20 @@ def getLookupTable(largerShapes, smallerShapes, largeIDCol="GEOID10", smallIDCol
     return smallToLarge
 
 def fasterLookupTable(largerShapes, smallerShapes, largeIDCol, smallIDCol):
+    """Create lookup between largerShapes geoseries and smallerSahapes geoseries
+    inputs:
+        :largerShapes: geodataframe with larger units
+        :smallerShapes: geodataframe with smaller units
+        :largeIDCol: unique identifier for largerShapes units
+        :smallIDCol: unique identifier for smallerShapes units
+    returns:
+        pandas dataframe with 3 columns:
+        - smallerShapes units id
+        - largerShapes units id
+        - the area of the geometry that is shared between them.
+    """
+
     lookupTable=[]
-    """
-    for i, bi in enumerate(smallershapes): 
-        for j, bj in enumerate(largershapes): 
-            if bj.geometry().Contains(bi.geometry()): 
-                 lookupTable.append((bi, bj))
-    """
     g1 = gp.GeoSeries(smallerShapes['geometry'])
     g2 = gp.GeoSeries(largerShapes['geometry'])
 
@@ -48,15 +55,21 @@ def fasterLookupTable(largerShapes, smallerShapes, largeIDCol, smallIDCol):
         namei = smallerShapes.loc[i, smallIDCol]
         geomi = g1[i]#smallerShapes.loc[i, 'geometry']
 
+        minArea = 0.0
+        assignedj = None
         for j in largerShapes.index:
             namej = largerShapes.loc[j, largeIDCol]
-            geomj = g2[j]#largerShapes.loc[j, 'geometry']
-
-            area = geomj.intersection(geomi).area
+            geomj = g2[j]
 
             if geomj.contains(geomi):
-                lookupTable.append((namei, namej, area))
-
+                minArea = area
+                assignedj = namej
+            else:
+                area = geomj.intersection(geomi).area
+                if area > minArea:
+                    minArea = area
+                    assignedj = namej
+        lookupTable.append((namei, assignedj, minArea))
     return pd.DataFrame(lookupTable, index=None, columns=["small", "large", "area"])
 
 
@@ -79,15 +92,15 @@ def prorateWithDFs(bigDF, basicDF, smallDF=None, bigIDCol="GEOID", basicIDCol="G
 
     if (smallDF is None) or (smallPopCol is None):
         # if no smaller units specified, then prorate by area of overlap between big and basic units
-        smallToBig = getLookupTable(bigDF, basicDF, bigIDCol, basicIDCol)
+        smallToBig = fasterLookupTable(bigDF, basicDF, bigIDCol, basicIDCol)
         smallToBig = smallToBig.rename(columns={"large":"bigUnits","small":"basicUnits"})
         smallToBig['votes'] = [bigDF.loc[bigDF[bigIDCol] == x, bigVoteColumn].tolist()[0] for x in smallToBig['bigUnits']]
         myData = smallToBig
 
     else:
-        smallToBig = getLookupTable(bigDF, smallDF, bigIDCol, smallIDCol)
+        smallToBig = fasterLookupTable(bigDF, smallDF, bigIDCol, smallIDCol)
         smallToBig = smallToBig.rename(columns={"large":"bigUnits"})
-        smallToBasic = getLookupTable(basicDF, smallDF, basicIDCol, smallIDCol)
+        smallToBasic = fasterLookupTable(basicDF, smallDF, basicIDCol, smallIDCol)
         smallToBasic = smallToBasic.rename(columns={"large":"basicUnits"})
 
         smallToBig['votes'] = [bigDF.loc[bigDF[bigIDCol] == x, bigVoteColumn].tolist()[0] for x in smallToBig['bigUnits']]
@@ -127,11 +140,11 @@ def roundoffWithDFs(basicDF, bigDF, smallDF, basicID, bigID, smallID, smallPopCo
     """
 
     if smallDF:
-        smallToBig = getLookupTable(bigDF, smallDF, bigID, smallID)["large","small"]
-        smallToBasic = getLookupTable(basicDF, smallDF, basicID, smallID).rename(columns={"large":"basicUnits"})
+        smallToBig = fasterLookupTable(bigDF, smallDF, bigID, smallID)["large","small"]
+        smallToBasic = fasterLookupTable(basicDF, smallDF, basicID, smallID).rename(columns={"large":"basicUnits"})
         lookup = smallToBig.merge(smallToBasic)
     else:
-        lookup = getLookupTable(bigDF, basicDF, bigID, basicID).rename(columns={'small':"basicUnits"})
+        lookup = fasterLookupTable(bigDF, basicDF, bigID, basicID).rename(columns={'small':"basicUnits"})
     #lookup.to_csv("roundofflookupTable.csv")
 
     if smallPopCol:
