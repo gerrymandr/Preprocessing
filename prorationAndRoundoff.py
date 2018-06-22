@@ -62,7 +62,7 @@ def fasterLookupTable(largerShapes, smallerShapes, largeIDCol, smallIDCol):
             geomj = g2[j]
 
             if geomj.contains(geomi):
-                minArea = area
+                minArea = geomi.area
                 assignedj = namej
             else:
                 area = geomj.intersection(geomi).area
