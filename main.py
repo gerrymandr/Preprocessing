@@ -6,11 +6,12 @@ from tkinter import *
 import tkinter
 from tkinter import filedialog
 
-from prorationAndRoundoff import prorateWithDFs, roundoffWithDFs, getLookupTable
+from prorationAndRoundoff import prorateWithDFs, roundoffWithDFs, getLookupTable, getOverlayBetweenBasicAndLargeBySmall
 
+windowSize = [615, 325]
 top = Tk()
 top.geometry("615x325")
-top.resizable(False, False)
+#top.resizable(False, False)
 top.title('Preprocess that data!')
 
 basicUnits = ''
@@ -49,7 +50,8 @@ def selectBasicUnits():
     global basicUnits
     basicUnits = filedialog.askopenfilename()
     if basicUnits:
-        check1.place(x=85, y=55)
+        #check1.place(x=85, y=55)
+        check1.place(relx=85./windowSize[0], rely=55./windowSize[1])
 
 def selectBiggerUnits():
     '''
@@ -59,7 +61,8 @@ def selectBiggerUnits():
     global biggerUnits
     biggerUnits = filedialog.askopenfilename()
     if biggerUnits:
-        check2.place(x=285, y=55)
+        #check2.place(x=285, y=55)
+        check2.place(relx=285./windowSize[0], rely=55./windowSize[1])
 
 def selectSmallestUnits():
     '''
@@ -69,7 +72,8 @@ def selectSmallestUnits():
     global smallestUnits
     smallestUnits = filedialog.askopenfilename()
     if smallestUnits:
-        check3.place(x=485, y=55)
+        #check3.place(x=485, y=55)
+        check3.place(relx=485./windowSize[0], rely=55./windowSize[1])
 
 def callback():
     '''
@@ -101,7 +105,7 @@ def selectBasicMerge():
     global basicMergePath
     basicMergePath = filedialog.askopenfilename()
     if basicUnits:
-        check4.place(x=285, y=155)
+        check4.place(relx=285./windowSize[0], rely=155./windowSize[1])
 
 def selectBiggestMerge():
     '''
@@ -111,7 +115,7 @@ def selectBiggestMerge():
     global biggestMergePath
     biggestMergePath = filedialog.askopenfilename()
     if basicUnits:
-        check5.place(x=285, y=205)
+        check5.place(relx=285./windowSize[0], rely=205./windowSize[1])
 
 def selectSmallestMerge():
     '''
@@ -121,7 +125,7 @@ def selectSmallestMerge():
     global smallestMergePath
     smallestMergePath = filedialog.askopenfilename()
     if basicUnits:
-        check6.place(x=285, y=255)
+        check6.place(relx=285./windowSize[0], rely=255./windowSize[1])
 
 # Creates the ability to load your basic units
 # and specify your identifier column
@@ -129,21 +133,21 @@ var1 = StringVar()
 label1 = Label(top, textvariable=var1)
 var1.set("Select your basic units")
 label1.pack()
-label1.place(x=25, y=25)
+label1.place(relx=25./windowSize[0], rely=25./windowSize[1])
 geoid1 = Entry(top, width=10)
 geoid1.pack()
-geoid1.place(x=115, y=55)
+geoid1.place(relx=115./windowSize[0], rely=55./windowSize[1])
 
 # Creates the checkbox to signal if you are pulling
 # in other data (basic units)
 CheckVar1 = BooleanVar()
-csv1 = Checkbutton(top, text="CSV (data to merge)", variable=CheckVar1, onvalue=True, offvalue=False, height=1, width=14)
+csv1 = Checkbutton(top, text="add CSV data", variable=CheckVar1, onvalue=True, offvalue=False, height=1, width=14)
 csv1.pack()
-csv1.place(x=25, y=80)
+csv1.place(relx=25./windowSize[0], rely=80./windowSize[1])
 
 # Creates the browse button to load the file (basic units)
 basic = Button(top, text="Browse", command=selectBasicUnits)
-basic.place(x=25, y=50)
+basic.place(relx=25./windowSize[0], rely=50./windowSize[1])
 
 # Creates the ability to load your bigger units
 # and specify your identifier column
@@ -151,21 +155,21 @@ var2 = StringVar()
 label2 = Label(top, textvariable=var2)
 var2.set("Select your bigger units")
 label2.pack()
-label2.place(x=225, y=25)
+label2.place(relx=225./windowSize[0], rely=25./windowSize[1])
 geoid2 = Entry(top, width=10)
 geoid2.pack()
-geoid2.place(x=315,y=55)
+geoid2.place(relx=315./windowSize[0],rely=55./windowSize[1])
 
 # Creates the checkbox to signal if you are pulling
 # in other data (bigger units)
 CheckVar2 = BooleanVar()
-csv2 = Checkbutton(top, text="CSV (data to merge)", variable=CheckVar2, onvalue=True, offvalue=False, height=1, width=14)
+csv2 = Checkbutton(top, text="add CSV data", variable=CheckVar2, onvalue=True, offvalue=False, height=1, width=14)
 csv2.pack()
-csv2.place(x=225, y=80)
+csv2.place(relx=225./windowSize[0], rely=80./windowSize[1])
 
 # Creates the browse button to load the file (bigger units)
 bigger = Button(top, text="Browse", command=selectBiggerUnits)
-bigger.place(x=225, y=50)
+bigger.place(relx=225./windowSize[0], rely=50./windowSize[1])
 
 # Creates the ability to load your smallest units
 # and specify your identifier column
@@ -173,51 +177,51 @@ var3 = StringVar()
 label3 = Label(top, textvariable=var3)
 var3.set("Select your smallest units")
 label3.pack()
-label3.place(x=425, y=25)
+label3.place(relx=425./windowSize[0], rely=25./windowSize[1])
 geoid3 = Entry(top, width=10)
 geoid3.pack()
-geoid3.place(x=515,y=55)
+geoid3.place(relx=515./windowSize[0],rely=55./windowSize[1])
 
 # Creates the checkbox to signal if you are pulling
 # in other data (smallest units)
 CheckVar3 = BooleanVar()
-csv3 = Checkbutton(top, text="CSV (data to merge)", variable=CheckVar3, onvalue=True, offvalue=False, height=1, width=14)
+csv3 = Checkbutton(top, text="add CSV data", variable=CheckVar3, onvalue=True, offvalue=False, height=1, width=14)
 csv3.pack()
-csv3.place(x=425, y=80)
+csv3.place(relx=425./windowSize[0], rely=80./windowSize[1])
 
 # Creates the browse button to load the file (smallest units)
 smallest = Button(top, text="Browse", command=selectSmallestUnits)
-smallest.place(x=425, y=50)
+smallest.place(relx=425./windowSize[0], rely=50./windowSize[1])
 
 # Creates the entry fields for your population column
 popCol = StringVar()
 popColLabel = Label(top, textvariable=popCol)
 popCol.set("Enter your population column")
 popColLabel.pack()
-popColLabel.place(x=25, y=125)
+popColLabel.place(relx=25./windowSize[0], rely=125./windowSize[1])
 popEntry = Entry(top, width=10)
 popEntry.pack()
-popEntry.place(x=25,y=150)
+popEntry.place(relx=25./windowSize[0],rely=150./windowSize[1])
 
 # Creates the entry fields for your vote column
 voteCol = StringVar()
 voteColLabel = Label(top, textvariable=voteCol)
 voteCol.set("Enter your vote column")
 voteColLabel.pack()
-voteColLabel.place(x=25, y=175)
+voteColLabel.place(relx=25./windowSize[0], rely=175./windowSize[1])
 voteEntry = Entry(top, width=10)
 voteEntry.pack()
-voteEntry.place(x=25,y=200)
+voteEntry.place(relx=25./windowSize[0],rely=200./windowSize[1])
 
 # Creates the entry fields for your CD column
 cdCol = StringVar()
 cdColLabel = Label(top, textvariable=cdCol)
 cdCol.set("Enter your CD column")
 cdColLabel.pack()
-cdColLabel.place(x=25, y=225)
+cdColLabel.place(relx=25./windowSize[0], rely=225./windowSize[1])
 cdEntry = Entry(top, width=10)
 cdEntry.pack()
-cdEntry.place(x=25,y=250)
+cdEntry.place(relx=25./windowSize[0],rely=250./windowSize[1])
 
 # Creates entry field to list column you want for
 # merging in csv data (basic units)
@@ -225,10 +229,10 @@ basicMergeCol = StringVar()
 basicMergeLabel = Label(top, textvariable=basicMergeCol)
 basicMergeCol.set("Basic Units Merge Column")
 basicMergeLabel.pack()
-basicMergeLabel.place(x=225, y=125)
+basicMergeLabel.place(relx=225./windowSize[0], rely=125./windowSize[1])
 basicMergeEntry = Entry(top, width=10)
 basicMergeEntry.pack()
-basicMergeEntry.place(x=315,y=155)
+basicMergeEntry.place(relx=315./windowSize[0],rely=155./windowSize[1])
 
 # Creates entry field to list column you want for
 # merging in csv data (biggest units)
@@ -236,10 +240,10 @@ bigMergeCol = StringVar()
 bigMergeLabel = Label(top, textvariable=bigMergeCol)
 bigMergeCol.set("Bigger Units Merge Column")
 bigMergeLabel.pack()
-bigMergeLabel.place(x=225, y=175)
+bigMergeLabel.place(relx=225./windowSize[0], rely=175./windowSize[1])
 bigMergeEntry = Entry(top, width=10)
 bigMergeEntry.pack()
-bigMergeEntry.place(x=315,y=205)
+bigMergeEntry.place(relx=315./windowSize[0],rely=205./windowSize[1])
 
 # Creates entry field to list column you want for
 # merging in csv data (smallest units)
@@ -247,27 +251,27 @@ smallMergeCol = StringVar()
 smallMergeLabel = Label(top, textvariable=smallMergeCol)
 smallMergeCol.set("Smallest Units Merge Column")
 smallMergeLabel.pack()
-smallMergeLabel.place(x=225, y=225)
+smallMergeLabel.place(relx=225./windowSize[0], rely=225./windowSize[1])
 smallMergeEntry = Entry(top, width=10)
 smallMergeEntry.pack()
-smallMergeEntry.place(x=315,y=255)
+smallMergeEntry.place(relx=315./windowSize[0],rely=255./windowSize[1])
 
 # Creates the browse option (basic units)
 basicMerge = Button(top, text="Browse", command=selectBasicMerge)
-basicMerge.place(x=225, y=150)
+basicMerge.place(relx=225./windowSize[0], rely=150./windowSize[1])
 
 # Creates the browse option (bigger units)
 biggestMerge = Button(top, text="Browse", command=selectBiggestMerge)
-biggestMerge.place(x=225, y=200)
+biggestMerge.place(relx=225./windowSize[0], rely=200./windowSize[1])
 
 # Creates the browse option (smallest units)
 smallestMerge = Button(top, text="Browse", command=selectSmallestMerge)
-smallestMerge.place(x=225, y=250)
+smallestMerge.place(relx=225./windowSize[0], rely=250./windowSize[1])
 
 # Creates the button to process and pass all variables
 b = Button(top, text="Process", width=10, command=callback)
 b.pack()
-b.place(x=500, y=250)
+b.place(relx=500./windowSize[0], rely=250./windowSize[1])
 
 top.mainloop()
 
@@ -293,7 +297,7 @@ print(merge_biggest_col)
 print(merge_smallest_col)
 """
 
-basicOutputFileName="PRORATEDANDROUNDED.shp"
+basicOutputFileName="proratedandrounded.shp"
 
 # now read files into geodataframes
 bigDF = gp.read_file(biggerUnits)
@@ -303,10 +307,10 @@ if len(smallestUnits)>0:
 else:
     smallDF = None
 
-proratedValues = prorateWithDFs(bigDF, basicDF, smallDF, big_geoid, basic_geoid, small_geoid, population, voting)
+lookupTable = getOverlayBetweenBasicAndLargeBySmall(smallDF, basicDF, bigDF, small_geoid, basic_geoid, big_geoid, voting)
+proratedValues = prorateWithDFs(bigDF, basicDF, smallDF, big_geoid, basic_geoid, small_geoid, population, voting, lookupTable)
 basicDF['voteValues'] = [proratedValues[x] for x in basicDF[basic_geoid]]
-
-roundedValues = roundoffWithDFs(basicDF, bigDF, smallDF, basic_geoid, big_geoid, small_geoid)
+roundedValues = roundoffWithDFs(basicDF, bigDF, smallDF, basic_geoid, big_geoid, small_geoid, population, lookupTable)
 basicDF['rounded'] = [roundedValues[x] for x in basicDF[basic_geoid]]
 
 basicDF.to_file(basicOutputFileName)
