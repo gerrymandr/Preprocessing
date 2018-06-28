@@ -171,7 +171,6 @@ def roundoffWithDFs(basicDF, bigDF, smallDF, basicID, bigID, smallID, smallPopCo
         smallDF[smallID] = smallDF[smallID].astype(str)
         lookup['area'] = [smallDF.loc[smallDF[smallID] == str(x), smallPopCol].tolist()[0] for x in lookup['small']]
 
-    print(lookup.head())
     basicToBigLookup = lookup.groupby(["basicUnits", "bigUnits"])["area"].sum()
 
     correspondence = {}

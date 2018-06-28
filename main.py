@@ -307,7 +307,7 @@ if len(smallestUnits)>0:
 else:
     smallDF = None
 
-lookupTable = getOverlayBetweenBasicAndLargeBySmall(smallDF, basicDF, bigDF, small_geoid, basic_geoid, big_geoid, voting)
+votes = "Population"
 proratedValues = prorateWithDFs(bigDF, basicDF, smallDF, big_geoid, basic_geoid, small_geoid, population, voting, lookupTable)
 basicDF['voteValues'] = [proratedValues[x] for x in basicDF[basic_geoid]]
 roundedValues = roundoffWithDFs(basicDF, bigDF, smallDF, basic_geoid, big_geoid, small_geoid, population, lookupTable)
