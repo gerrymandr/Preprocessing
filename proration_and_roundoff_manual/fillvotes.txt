@@ -1,0 +1,41 @@
+\node at (0.5,0.5) [\thicc] {\bf \color{NavyBlue} 0};
+\node at (1.5,0.5) [\thicc] {\bf \color{NavyBlue} 1.6};
+\node at (2.5,0.5) [\thicc] {\bf \color{NavyBlue} 2.4};
+\node at (3.5,0.5) [\thicc] {\bf \color{NavyBlue} 0};
+\node at (4.5,0.5) [\thicc] {\bf \color{NavyBlue} 0};
+\node at (5.5,0.5) [\thicc] {\bf \color{NavyBlue} 0};
+
+\node at (0.5,1.5) [\thicc] {\bf \color{NavyBlue} 2.4};
+\node at (1.5,1.5) [\thicc] {\bf \color{NavyBlue} 0.4};
+\node at (2.5,1.5) [\thicc] {\bf \color{NavyBlue} 0.8};
+\node at (3.5,1.5) [\thicc] {\bf \color{NavyBlue} 0};
+\node at (4.5,1.5) [\thicc] {\bf \color{NavyBlue} 0};
+\node at (5.5,1.5) [\thicc] {\bf \color{NavyBlue} 0};
+
+\node at (0.5,2.5) [\thicc] {\bf \color{NavyBlue} 1};
+\node at (1.5,2.5) [\thicc] {\bf \color{NavyBlue} 1.5};
+\node at (2.5,2.5) [\thicc] {\bf \color{NavyBlue} 2.5};
+\node at (3.5,2.5) [\thicc] {\bf \color{NavyBlue} 0};
+\node at (4.5,2.5) [\thicc] {\bf \color{NavyBlue} 0};
+\node at (5.5,2.5) [\thicc] {\bf \color{NavyBlue} 0};
+
+\node at (0.5,3.5) [\thicc] {\bf \color{NavyBlue} 0.5};
+\node at (1.5,3.5) [\thicc] {\bf \color{NavyBlue} 1};
+\node at (2.5,3.5) [\thicc] {\bf \color{NavyBlue} 4};
+\node at (3.5,3.5) [\thicc] {\bf \color{NavyBlue} 0.7};
+\node at (4.5,3.5) [\thicc] {\bf \color{NavyBlue} 3.5};
+\node at (5.5,3.5) [\thicc] {\bf \color{NavyBlue} 1.4};
+
+\node at (0.5,4.5) [\thicc] {\bf \color{NavyBlue} 0};
+\node at (1.5,4.5) [\thicc] {\bf \color{NavyBlue} 0};
+\node at (2.5,4.5) [\thicc] {\bf \color{NavyBlue} 1};
+\node at (3.5,4.5) [\thicc] {\bf \color{NavyBlue} 1.6};
+\node at (4.5,4.5) [\thicc] {\bf \color{NavyBlue} 3.2};
+\node at (5.5,4.5) [\thicc] {\bf \color{NavyBlue} 0.8};
+
+\node at (0.5,5.5) [\thicc] {\bf \color{NavyBlue} 2};
+\node at (1.5,5.5) [\thicc] {\bf \color{NavyBlue} 3};
+\node at (2.5,5.5) [\thicc] {\bf \color{NavyBlue} 6};
+\node at (3.5,5.5) [\thicc] {\bf \color{NavyBlue} 7.2};
+\node at (4.5,5.5) [\thicc] {\bf \color{NavyBlue} 4};
+\node at (5.5,5.5) [\thicc] {\bf \color{NavyBlue} 3.2};

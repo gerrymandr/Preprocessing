@@ -1,0 +1,41 @@
+\node at (0.5,0.5) [\thicc] {0};
+\node at (1.5,0.5) [\thicc] {4};
+\node at (2.5,0.5) [\thicc] {6};
+\node at (3.5,0.5) [\thicc] {2};
+\node at (4.5,0.5) [\thicc] {1};
+\node at (5.5,0.5) [\thicc] {1};
+
+\node at (0.5,1.5) [\thicc] {6};
+\node at (1.5,1.5) [\thicc] {1};
+\node at (2.5,1.5) [\thicc] {2};
+\node at (3.5,1.5) [\thicc] {9};
+\node at (4.5,1.5) [\thicc] {4};
+\node at (5.5,1.5) [\thicc] {7};
+
+\node at (0.5,2.5) [\thicc] {2};
+\node at (1.5,2.5) [\thicc] {3};
+\node at (2.5,2.5) [\thicc] {5};
+\node at (3.5,2.5) [\thicc] {0};
+\node at (4.5,2.5) [\thicc] {0};
+\node at (5.5,2.5) [\thicc] {0};
+
+\node at (0.5,3.5) [\thicc] {1};
+\node at (1.5,3.5) [\thicc] {2};
+\node at (2.5,3.5) [\thicc] {8};
+\node at (3.5,3.5) [\thicc] {1};
+\node at (4.5,3.5) [\thicc] {5};
+\node at (5.5,3.5) [\thicc] {2};
+
+\node at (0.5,4.5) [\thicc] {0};
+\node at (1.5,4.5) [\thicc] {0};
+\node at (2.5,4.5) [\thicc] {1};
+\node at (3.5,4.5) [\thicc] {2};
+\node at (4.5,4.5) [\thicc] {4};
+\node at (5.5,4.5) [\thicc] {1};
+
+\node at (0.5,5.5) [\thicc] {2};
+\node at (1.5,5.5) [\thicc] {3};
+\node at (2.5,5.5) [\thicc] {6};
+\node at (3.5,5.5) [\thicc] {9};
+\node at (4.5,5.5) [\thicc] {5};
+\node at (5.5,5.5) [\thicc] {4};
