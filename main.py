@@ -311,13 +311,18 @@ if len(smallestUnits)>0:
     smallDF = gp.read_file(smallestUnits)
 else:
     smallDF = None
+lookupTable = None
 
 if prorate.get():
+    lookupTable = getOverlayBetweenBasicAndLargeBySmall(smallDF, basicDF, bigDF, small_geoid, basic_geoid, big_geoid, voting)
+
     basicOutputFileName += "Prorated"
     proratedValues = prorateWithDFs(bigDF, basicDF, smallDF, big_geoid, basic_geoid, small_geoid, population, voting, lookupTable)
     basicDF['voteValues'] = [proratedValues[x] for x in basicDF[basic_geoid]]
 
 if roundoff.get():
+    if lookupTable is None: 
+        lookupTable = getOverlayBetweenBasicAndLargeBySmall(smallDF, basicDF, bigDF, small_geoid, basic_geoid, big_geoid, voting)
     basicOutputFileName += "Rounded"
     roundedValues = roundoffWithDFs(basicDF, bigDF, smallDF, basic_geoid, big_geoid, small_geoid, population, lookupTable)
     basicDF['CD'] = [roundedValues[x] for x in basicDF[basic_geoid]]
