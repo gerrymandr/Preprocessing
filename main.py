@@ -268,6 +268,11 @@ biggestMerge.place(relx=225./windowSize[0], rely=200./windowSize[1])
 smallestMerge = Button(top, text="Browse", command=selectSmallestMerge)
 smallestMerge.place(relx=225./windowSize[0], rely=250./windowSize[1])
 
+prorate = Checkbutton(top, text="Prorate", width=10, onvalue=True, offvalue=False)
+prorate.place(relx=500./windowSize[0], rely=125./windowSize[1])
+roundoff = Checkbutton(top, text="Roundoff", width=10, onvalue=True, offvalue=False)
+roundoff.place(relx=500./windowSize[0], rely=175./windowSize[1])
+
 # Creates the button to process and pass all variables
 b = Button(top, text="Process", width=10, command=callback)
 b.pack()
@@ -297,7 +302,7 @@ print(merge_biggest_col)
 print(merge_smallest_col)
 """
 
-basicOutputFileName="proratedandrounded.shp"
+basicOutputFileName=""
 
 # now read files into geodataframes
 bigDF = gp.read_file(biggerUnits)
@@ -307,10 +312,15 @@ if len(smallestUnits)>0:
 else:
     smallDF = None
 
-votes = "Population"
-proratedValues = prorateWithDFs(bigDF, basicDF, smallDF, big_geoid, basic_geoid, small_geoid, population, voting, lookupTable)
-basicDF['voteValues'] = [proratedValues[x] for x in basicDF[basic_geoid]]
-roundedValues = roundoffWithDFs(basicDF, bigDF, smallDF, basic_geoid, big_geoid, small_geoid, population, lookupTable)
-basicDF['rounded'] = [roundedValues[x] for x in basicDF[basic_geoid]]
+if prorate.get():
+    basicOutputFileName += "Prorated"
+    proratedValues = prorateWithDFs(bigDF, basicDF, smallDF, big_geoid, basic_geoid, small_geoid, population, voting, lookupTable)
+    basicDF['voteValues'] = [proratedValues[x] for x in basicDF[basic_geoid]]
 
-basicDF.to_file(basicOutputFileName)
+if roundoff.get():
+    basicOutputFileName += "Rounded"
+    roundedValues = roundoffWithDFs(basicDF, bigDF, smallDF, basic_geoid, big_geoid, small_geoid, population, lookupTable)
+    basicDF['CD'] = [roundedValues[x] for x in basicDF[basic_geoid]]
+
+basicDF.to_file(basicOutputFileName+".shp")
+print("wrote to new shapefile: %s"%basicOutputFileName)
