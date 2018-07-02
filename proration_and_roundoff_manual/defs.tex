@@ -1,0 +1,65 @@
+\documentclass[12pt]{amsart}
+
+%%%%% Fiddles with margins to make them not suck
+\addtolength{\oddsidemargin}{-0.75in}
+\addtolength{\evensidemargin}{-0.75in}
+\addtolength{\textwidth}{1.5in}
+
+\addtolength{\topmargin}{-0.3in}
+\addtolength{\textheight}{0.3in}
+
+%%%%% Packages I think are good
+\usepackage{amssymb,amscd,amsmath,amsthm,url,braket,microtype}
+\usepackage[dvipsnames]{xcolor}
+\usepackage[all]{xy}
+\usepackage[pdftex]{graphicx}
+\usepackage{dsfont}
+\usepackage{cleveref}
+\usepackage{pgfplots}
+\pgfmathsetseed{\number\pdfrandomseed}
+
+\newcommand{\InitVariables}{%
+  \pgfmathsetmacro{\a}{int(random(0,10))}%
+}
+
+%%%%% Theorem type environments
+\newtheorem {Theorem}                    {Theorem}
+\newtheorem {Proposition}[Theorem]       {Proposition}
+\newtheorem {Lemma}      [Theorem]       {Lemma}
+\newtheorem {Corollary}  [Theorem]       {Corollary}
+\newtheorem {Claim}      [Theorem]       {Claim}
+\newtheorem*{Question}   {Question}
+\newtheorem*{Exercise}   {Exercise}
+
+\theoremstyle{definition}
+\newtheorem  {Definition} [Theorem]{Definition}
+
+\theoremstyle{remark}
+\newtheorem{Remark}[Theorem]	{Remark}
+\newtheorem{Example}[Theorem]	{Example}
+
+%%%%% New commands
+\newcommand{\mute}[1] {} %This mutes things
+\newcommand{\mc}[1]{\mathcal{#1}}
+\newcommand{\mf}[1]{\mathfrak{#1}}
+\newcommand{\cal}[1]{\mathcal{#1}}
+
+
+\DeclareMathOperator{\Av}{\rm AvCon}
+
+%%%%% Shorthands I like
+\def \N{\mathbb{N}}
+\def \F{\mathbb{F}}
+\def \Z{\mathbb{Z}}
+\def \R{\mathbb{R}}
+\def \C{\mathbb{C}}
+\def \H{\mathbb{H}}
+\def \Q{\mathbb{Q}}
+\def \K{\mathbb{K}}
+\def \Al{{\aleph_0}}
+\def \vphi{\varphi}
+\def \ssm{\smallsetminus}
+\def \del{\partial}
+\def \eps{\varepsilon}
+\def \vphi{\varphi}
+\def \thicc{thick}

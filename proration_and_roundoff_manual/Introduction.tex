@@ -1,0 +1,31 @@
+This document is written to be a brief explanation of two 
+processes which we call {\it proration} and 
+{\it roundoff}. 
+{\it Proration} is the process of taking electoral data given in 
+terms of one partition and assigning it to another partition of a 
+state. For example, if election data is given in 
+terms of old precincts, and we want to see it in terms of 
+current precincts, which might be geographically different 
+from the past precincts.
+\newline
+~\begin{center}
+  \resizebox{0.4\textwidth}{!}{
+  \begin{tikzpicture}[scale=0.5]
+    \draw[\thicc, xstep = 6, ystep = 4] (0,0) grid (12,12);
+    \node (A) at (6,-1) [scale = 1.3, draw, \thicc, rectangle] {Election data in old precincts};
+    \draw[\thicc, color = Plum, xstep = 4, ystep = 6] (16,0) grid (28,12);
+    \node (B) at (22,-1) [scale=1.3, color = Plum, draw, \thicc, rectangle] {New precincts};
+    \node (C) at (14,-2) {};
+    \draw[xshift = 2cm, yshift = 1cm, \thicc, xstep = 6, ystep = 4] (6,-16) grid (18,-4);
+    \draw[yshift = 3cm, \thicc, color = Plum, xstep = 4, ystep = 6] (8,-18) grid (20,-6);
+    \node (D) at (14,-16) [scale = 1.3, draw, \thicc, rectangle] {Convert election data to new units};
+    \draw [->, \thicc] (A) to [out = -90, in = 180] (D) {};
+    \draw [->, \thicc] (B) to [out = -90, in = 0] (D) {};
+  \end{tikzpicture}
+  }
+\end{center}
+{\it Roundoff} is the process of assigning small units to larger 
+units that may not match. For example, if district lines cut 
+through counties, and you want to assign counties to 
+districts, roundoff is a way to make the assignment in a 
+(mostly) deterministic and complete manner.
