@@ -268,9 +268,14 @@ biggestMerge.place(relx=225./windowSize[0], rely=200./windowSize[1])
 smallestMerge = Button(top, text="Browse", command=selectSmallestMerge)
 smallestMerge.place(relx=225./windowSize[0], rely=250./windowSize[1])
 
-prorate = Checkbutton(top, text="Prorate", width=10, onvalue=True, offvalue=False)
+prorateVar = BooleanVar()
+prorate = Checkbutton(top, text="Prorate", width=10, variable=prorateVar)
+prorate.pack()
 prorate.place(relx=500./windowSize[0], rely=125./windowSize[1])
-roundoff = Checkbutton(top, text="Roundoff", width=10, onvalue=True, offvalue=False)
+
+roundoffVar = BooleanVar()
+roundoff = Checkbutton(top, text="Roundoff", width=10, variable=roundoffVar)
+roundoff.pack()
 roundoff.place(relx=500./windowSize[0], rely=175./windowSize[1])
 
 # Creates the button to process and pass all variables
@@ -313,7 +318,8 @@ else:
     smallDF = None
 lookupTable = None
 
-if prorate.get():
+print(prorateVar.get())
+if prorateVar.get():
     lookupTable = getOverlayBetweenBasicAndLargeBySmall(smallDF, basicDF, bigDF, small_geoid, basic_geoid, big_geoid, voting)
 
     basicOutputFileName += "Prorated"
@@ -321,7 +327,7 @@ if prorate.get():
     basicDF['voteValues'] = [proratedValues[x] for x in basicDF[basic_geoid]]
 
 if roundoff.get():
-    if lookupTable is None: 
+    if lookupTable is None:
         lookupTable = getOverlayBetweenBasicAndLargeBySmall(smallDF, basicDF, bigDF, small_geoid, basic_geoid, big_geoid, voting)
     basicOutputFileName += "Rounded"
     roundedValues = roundoffWithDFs(basicDF, bigDF, smallDF, basic_geoid, big_geoid, small_geoid, population, lookupTable)
