@@ -326,7 +326,7 @@ if prorateVar.get():
     proratedValues = prorateWithDFs(bigDF, basicDF, smallDF, big_geoid, basic_geoid, small_geoid, population, voting, lookupTable)
     basicDF['voteValues'] = [proratedValues[x] for x in basicDF[basic_geoid]]
 
-if roundoff.get():
+if roundoffVar.get():
     if lookupTable is None:
         lookupTable = getOverlayBetweenBasicAndLargeBySmall(smallDF, basicDF, bigDF, small_geoid, basic_geoid, big_geoid, voting)
     basicOutputFileName += "Rounded"
