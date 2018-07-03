@@ -1,3 +1,4 @@
+import os
 import numpy as np
 import pandas as pd
 import geopandas as gp
@@ -7,6 +8,7 @@ import tkinter
 from tkinter import filedialog
 
 from prorationAndRoundoff import prorateWithDFs, roundoffWithDFs, getLookupTable, getOverlayBetweenBasicAndLargeBySmall
+from gen_report import prorate_and_roundoff_report, multifile_report
 
 windowSize = [615, 325]
 top = Tk()
@@ -87,7 +89,7 @@ def callback():
     big_geoid = geoid2.get()
     small_geoid = geoid3.get()
     population = popEntry.get()
-    voting = voteEntry.get()
+    voting = voteEntry.get().split(',')
     cong_dist = cdEntry.get()
     merge_basic_flag = CheckVar1.get()
     merge_big_flag = CheckVar2.get()
@@ -276,7 +278,12 @@ prorate.place(relx=500./windowSize[0], rely=125./windowSize[1])
 roundoffVar = BooleanVar()
 roundoff = Checkbutton(top, text="Roundoff", width=10, variable=roundoffVar)
 roundoff.pack()
-roundoff.place(relx=500./windowSize[0], rely=175./windowSize[1])
+roundoff.place(relx=500./windowSize[0], rely=162./windowSize[1])
+
+reportVar = BooleanVar()
+report = Checkbutton(top, text="Report", width=10, variable=reportVar)
+report.pack()
+report.place(relx=500./windowSize[0], rely=200./windowSize[1])
 
 # Creates the button to process and pass all variables
 b = Button(top, text="Process", width=10, command=callback)
@@ -285,53 +292,58 @@ b.place(relx=500./windowSize[0], rely=250./windowSize[1])
 
 top.mainloop()
 
-# All variables that get passed
-"""
-print(basicUnits)
-print(biggerUnits)
-print(smallestUnits)
-print(basic_geoid)
-print(big_geoid)
-print(small_geoid)
-print(population)
-print(voting)
-print(cong_dist)
-print(merge_basic_flag)
-print(merge_big_flag)
-print(merge_small_flag)
-print(basicMergePath)
-print(biggestMergePath)
-print(smallestMergePath)
-print(merge_basic_col)
-print(merge_biggest_col)
-print(merge_smallest_col)
-"""
-
-basicOutputFileName=""
+basicOutputFileName="basic"
 
 # now read files into geodataframes
-bigDF = gp.read_file(biggerUnits)
-basicDF = gp.read_file(basicUnits)
+if biggerUnits != '':
+    bigDF = gp.read_file(biggerUnits)
+if basicUnits != '':
+    basicDF = gp.read_file(basicUnits)
 if len(smallestUnits)>0:
     smallDF = gp.read_file(smallestUnits)
 else:
     smallDF = None
 lookupTable = None
 
-print(prorateVar.get())
+reportOutputFileName=[]
+
 if prorateVar.get():
     lookupTable = getOverlayBetweenBasicAndLargeBySmall(smallDF, basicDF, bigDF, small_geoid, basic_geoid, big_geoid, voting)
-
     basicOutputFileName += "Prorated"
+    reportOutputFileName=["Prorated"]
     proratedValues = prorateWithDFs(bigDF, basicDF, smallDF, big_geoid, basic_geoid, small_geoid, population, voting, lookupTable)
-    basicDF['voteValues'] = [proratedValues[x] for x in basicDF[basic_geoid]]
 
-if roundoff.get():
+    for i, c in enumerate(voting):
+        basicDF[c] = [proratedValues[x][i] for x in basicDF[basic_geoid]]
+
+if roundoffVar.get():
     if lookupTable is None:
         lookupTable = getOverlayBetweenBasicAndLargeBySmall(smallDF, basicDF, bigDF, small_geoid, basic_geoid, big_geoid, voting)
     basicOutputFileName += "Rounded"
+    reportOutputFileName.append("Roundoff")
     roundedValues = roundoffWithDFs(basicDF, bigDF, smallDF, basic_geoid, big_geoid, small_geoid, population, lookupTable)
     basicDF['CD'] = [roundedValues[x] for x in basicDF[basic_geoid]]
 
+
 basicDF.to_file(basicOutputFileName+".shp")
 print("wrote to new shapefile: %s"%basicOutputFileName)
+
+# output data for report generation
+if reportVar.get():
+    if len(reportOutputFileName) < 1:
+        names = [x for x in [biggerUnits, basicUnits, smallestUnits] if x != '']
+        cleaned_names = [os.path.basename(x).split(".")[0] for x in names]
+
+        reportOutputFileName = "_and_".join(cleaned_names)+"_report.pdf"
+        input_list = []
+        if biggerUnits != '':
+            input_list.append([biggerUnits, big_geoid])
+        if basicUnits != '':
+            input_list.append([basicUnits, basic_geoid])
+        if smallestUnits != '':
+            input_list.append([smallestUnits, small_geoid])
+        multifile_report(reportOutputFileName, input_list)
+    
+    else:
+        reportOutputFileName = "_and_".join(reportOutputFileName)+"_report.pdf"
+        prorate_and_roundoff_report(reportOutputFileName, biggerUnits, basicUnits, smallestUnits, big_geoid, basic_geoid, small_geoid, population, voting, lookupTable)

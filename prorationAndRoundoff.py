@@ -33,7 +33,7 @@ def getLookupTable(largerShapes, smallerShapes, largeIDCol="GEOID10", smallIDCol
                                  'area':  smallToLarge['area']})
     return smallToLarge
 
-def fasterLookupTable(largerShapes, smallerShapes, largeIDCol, smallIDCol):
+def fasterLookupTable(largerShapes, smallerShapes, largeIDCol, smallIDCol, by_area=False):
     """Create lookup between largerShapes geoseries and smallerSahapes geoseries
     inputs:
         :largerShapes: geodataframe with larger units
@@ -53,7 +53,7 @@ def fasterLookupTable(largerShapes, smallerShapes, largeIDCol, smallIDCol):
 
     for i in smallerShapes.index:
         namei = smallerShapes.loc[i, smallIDCol]
-        geomi = g1[i]#smallerShapes.loc[i, 'geometry']
+        geomi = g1[i]
 
         minArea = 0.0
         assignedj = None
@@ -66,28 +66,37 @@ def fasterLookupTable(largerShapes, smallerShapes, largeIDCol, smallIDCol):
                 assignedj = namej
             else:
                 area = geomj.intersection(geomi).area
-                if area > minArea:
+                if not by_area and (area > minArea):
                     minArea = area
                     assignedj = namej
-        lookupTable.append((namei, assignedj, minArea))
+                elif by_area and (area > 0):
+                    lookupTable.append((namei, namej, area))
+                    assignedj = None
+        if assignedj:
+            lookupTable.append((namei, assignedj, minArea))
     return pd.DataFrame(lookupTable, index=None, columns=["small", "large", "area"])
 
-def getOverlayBetweenBasicAndLargeBySmall(smallDF, basicDF, bigDF, smallIDCol="GEOID", basicIDCol="GEOID", bigIDCol="GEOID", bigVoteColumn="votes"):
+def getOverlayBetweenBasicAndLargeBySmall(smallDF, basicDF, bigDF, smallIDCol="GEOID", basicIDCol="GEOID", bigIDCol="GEOID", bigVoteColumn=["votes"]):
     if (smallDF is None):
         # if no smaller units specified, then prorate by area of overlap between big and basic units
-        smallToBig = fasterLookupTable(bigDF, basicDF, bigIDCol, basicIDCol)
+        smallToBig = fasterLookupTable(bigDF, basicDF, bigIDCol, basicIDCol, by_area=True)
         smallToBig = smallToBig.rename(columns={"large":"bigUnits","small":"basicUnits"})
-        smallToBig['votes'] = [bigDF.loc[bigDF[bigIDCol] == x, bigVoteColumn].tolist()[0] for x in smallToBig['bigUnits']]
+        for c in bigVoteColumn:
+            smallToBig[c] = [bigDF.loc[bigDF[bigIDCol] == x, c].tolist()[0] for x in smallToBig['bigUnits']]
     else:
         smallToBig = fasterLookupTable(bigDF, smallDF, bigIDCol, smallIDCol)
         smallToBig = smallToBig.rename(columns={"large":"bigUnits"})
         smallToBasic = fasterLookupTable(basicDF, smallDF, basicIDCol, smallIDCol)
         smallToBasic = smallToBasic.rename(columns={"large":"basicUnits"})
-        smallToBig['votes'] = [bigDF.loc[bigDF[bigIDCol] == x, bigVoteColumn].tolist()[0] for x in smallToBig['bigUnits']]
-        smallToBig = smallToBig.loc[:,["bigUnits","small","votes"]].merge(smallToBasic)
+        for c in bigVoteColumn:
+            smallToBig[c] = [bigDF.loc[bigDF[bigIDCol] == x, c].tolist()[0] for x in smallToBig['bigUnits']]
+
+        cols = ['bigUnits','small']
+        cols.extend(bigVoteColumn)
+        smallToBig = smallToBig.loc[:,cols].merge(smallToBasic)
     return smallToBig
 
-def prorateWithDFs(bigDF, basicDF, smallDF=None, bigIDCol="GEOID", basicIDCol="GEOID", smallIDCol=None, smallPopCol=None, bigVoteColumn="VoteCount", myData=None):
+def prorateWithDFs(bigDF, basicDF, smallDF=None, bigIDCol="GEOID", basicIDCol="GEOID", smallIDCol=None, smallPopCol=None, bigVoteColumns=["VoteCount"], myData=None):
     """ Takes 3 geopandas dataframes in order of inclusion, where biggerUnitsData
         has some data saved in columns (in dataCols) that needs to be prorated down
         to basic units either by intersection area (area) or else
@@ -108,9 +117,10 @@ def prorateWithDFs(bigDF, basicDF, smallDF=None, bigIDCol="GEOID", basicIDCol="G
     if myData is None:
         if (smallDF is None) or (smallPopCol is None):
             # if no smaller units specified, then prorate by area of overlap between big and basic units
-            smallToBig = fasterLookupTable(bigDF, basicDF, bigIDCol, basicIDCol)
+            smallToBig = fasterLookupTable(bigDF, basicDF, bigIDCol, basicIDCol, by_area=True)
             smallToBig = smallToBig.rename(columns={"large":"bigUnits","small":"basicUnits"})
-            smallToBig['votes'] = [bigDF.loc[bigDF[bigIDCol] == x, bigVoteColumn].tolist()[0] for x in smallToBig['bigUnits']]
+            for c in bigVoteColumns:
+                smallToBig[c] = [bigDF.loc[bigDF[bigIDCol] == x, c].tolist()[0] for x in smallToBig['bigUnits']]
             myData = smallToBig
 
         else:
@@ -119,25 +129,32 @@ def prorateWithDFs(bigDF, basicDF, smallDF=None, bigIDCol="GEOID", basicIDCol="G
             smallToBasic = fasterLookupTable(basicDF, smallDF, basicIDCol, smallIDCol)
             smallToBasic = smallToBasic.rename(columns={"large":"basicUnits"})
 
-            smallToBig['votes'] = [bigDF.loc[bigDF[bigIDCol] == x, bigVoteColumn].tolist()[0] for x in smallToBig['bigUnits']]
-
-            myData = smallToBig.loc[:,["bigUnits","small","votes"]].merge(smallToBasic)
+            for c in bigVoteColumns:
+                smallToBig[c] = [bigDF.loc[bigDF[bigIDCol] == x, c].tolist()[0] for x in smallToBig['bigUnits']]
+            cols = [x for x in bigVoteColumns]
+            cols.extend(["bigUnits", "small"])
+            myData = smallToBig.loc[:,cols].merge(smallToBasic)
             myData['area'] = [smallDF.loc[smallDF[smallIDCol] == x, smallPopCol] for x in myData['small']]
     else:
-        myData['votes'] = myData['area']
         if smallPopCol:
-            myData['votes'] = [bigDF.loc[bigDF[bigIDCol] == x, bigVoteColumn].tolist()[0] for x in myData['bigUnits']]
+            for c in bigVoteColumns:
+                myData[c] = [bigDF.loc[bigDF[bigIDCol] == x, c].tolist()[0] for x in myData['bigUnits']]
 
-    myData = myData.groupby(["basicUnits", "bigUnits"])["area", "votes"].sum()
+    columns = [x for x in bigVoteColumns]
+    columns.extend(['area'])
 
-    [small,big], area, votes = list(zip(*myData.index.tolist())), myData['area'].tolist(), myData['votes'].tolist()
-    weightedByAmount = np.array(votes) * np.array(area)
+    myData = myData.groupby(["basicUnits", "bigUnits"])[columns].sum()
+    [small,big], area, votes = list(zip(*myData.index.tolist())), np.array(myData['area'].tolist()), [np.array(myData[c].tolist()) for c in bigVoteColumns]
+    votes = [x * area for x in votes]
 
-    myData = pd.DataFrame({"ID":small, "area":area, "votes":votes, "weightedVotes":weightedByAmount})
-    myData = myData.groupby(["ID"])["area","votes","weightedVotes"].sum()
-    myData['weightedVotes'] /= myData['area']
+    myData = pd.DataFrame({"ID":small, "area":area})
+    for i, x in enumerate(bigVoteColumns):
+        myData[x] = votes[i]
+    myData = myData.groupby(["ID"])[columns].sum()
+    for c in bigVoteColumns:
+        myData[c] /= myData['area']
 
-    return dict(zip(myData.index, myData['weightedVotes']))
+    return dict(zip(myData.index, zip(*[myData[c] for c in bigVoteColumns])))
 
 
 def roundoffWithDFs(basicDF, bigDF, smallDF, basicID, bigID, smallID, smallPopCol=None, lookup=None):
@@ -165,7 +182,7 @@ def roundoffWithDFs(basicDF, bigDF, smallDF, basicID, bigID, smallID, smallPopCo
             smallToBasic = fasterLookupTable(basicDF, smallDF, basicID, smallID).rename(columns={"large":"basicUnits"})
             lookup = smallToBig.merge(smallToBasic).rename(columns={"large":"bigUnits"})
         else:
-            lookup = fasterLookupTable(bigDF, basicDF, bigID, basicID).rename(columns={'small':"basicUnits","large":"bigUnits"})
+            lookup = fasterLookupTable(bigDF, basicDF, bigID, basicID, by_area=True).rename(columns={'small':"basicUnits","large":"bigUnits"})
 
     if smallPopCol:
         smallDF[smallID] = smallDF[smallID].astype(str)
