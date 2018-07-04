@@ -144,7 +144,9 @@ def prorateWithDFs(bigDF, basicDF, smallDF=None, bigIDCol="GEOID", basicIDCol="G
     columns.extend(['area'])
 
     myData = myData.groupby(["basicUnits", "bigUnits"])[columns].sum()
-    [small,big], area, votes = list(zip(*myData.index.tolist())), np.array(myData['area'].tolist()), [np.array(myData[c].tolist()) for c in bigVoteColumns]
+    [small, big] = list(zip(*myData.index.tolist()))
+    area =  np.array(myData['area'].tolist())
+    votes = [np.array(myData[c].tolist()) for c in bigVoteColumns]
     votes = [x * area for x in votes]
 
     myData = pd.DataFrame({"ID":small, "area":area})

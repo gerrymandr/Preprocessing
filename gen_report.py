@@ -84,9 +84,9 @@ def generic_shapefile_report(
         # 2.1 geometry
         Story.append(Paragraph(f"""<h2> Geometry of units </h2>""", styleH2))
         Story.append(Paragraph(f"""Number of units: {numUnits}""", styleN, bulletText='o'))
-        Story.append(Paragraph(f"""Number of disconnected units: {numIslands} """, styleN, bulletText='o'))
-        Story.append(Paragraph(f"""Number of multiply connected or island-containing units: {numMultiUnits} """, styleN, bulletText='o'))
-        Story.append(Paragraph(f"""Number of units contained completely inside another: {numUnitsInsideUnits} """, styleN, bulletText='o'))
+        Story.append(Paragraph(f"""Number of disconnected units: {numIslands}""", styleN, bulletText='o'))
+        Story.append(Paragraph(f"""Number of multiply connected or island-containing units: {numMultiUnits}""", styleN, bulletText='o'))
+        Story.append(Paragraph(f"""Number of units contained completely inside another: {numUnitsInsideUnits}""", styleN, bulletText='o'))
         Story.append(Paragraph(f"""Average number of neighbors: {avgNbrs}""", styleN, bulletText='o'))
         Story.append(Paragraph(f"""Highest degree of connectivity: {maxNbrs}""", styleN, bulletText='o'))
         Story.append(Paragraph(f"""Average, maximum, and minimum Polsby-Popper scores: {avgPolsPop}, {maxPolsPop}, {minPolsPop}""", styleN, bulletText='o'))
@@ -183,8 +183,11 @@ def generic_shapefile_report(
 def prorate_and_roundoff_report(
         reportOutputFileName="ProrateAndRoundoff.pdf",
         biggerUnits=None,
+        bigDF=None,
         basicUnits=None,
+        basicDF=None,
         smallestUnits=None,
+        smallDF=None,
         big_geoid=None,
         basic_geoid=None,
         small_geoid=None,
@@ -196,16 +199,20 @@ def prorate_and_roundoff_report(
 
     # Process the 3 datafiles and their differences in geometry
     popcol = population != ''
-    bigdf = biggerUnits.split('/')[-1]
-    basicdf = basicUnits.split('/')[-1]
-    bigDF = gp.read_file(biggerUnits)
-    basicDF = gp.read_file(basicUnits)
-    smalldf = ''
-    smallDF = None
+    if biggerUnits:
+        bigdf = biggerUnits.split('/')[-1]
+    if basicUnits:
+        basicdf = basicUnits.split('/')[-1]
+    if bigDF is None:
+        bigDF = gp.read_file(biggerUnits)
+    if basicDF is None:
+        basicDF = gp.read_file(basicUnits)
 
+    smalldf = ''
     if smallestUnits:
         smalldf = smallestUnits.split('/')[-1]
-        smallDF = gp.read_file(smallestUnits)
+        if smallDF is None:
+            smallDF = gp.read_file(smallestUnits)
     pop = population
     nbasic = len(basicDF)
     nbig = len(bigDF)
@@ -229,6 +236,7 @@ def prorate_and_roundoff_report(
     bigsplitsize=1# = np.max(abs(intersectArea / areas - 0.5))
 
     nbasicsplit = len(set(basicsplit))
+    bvotes = None
 
     doc = SimpleDocTemplate(reportOutputFileName, pagesize=letter) 
     styles = getSampleStyleSheet()
@@ -239,29 +247,31 @@ def prorate_and_roundoff_report(
     Story=[]
 
     if prorated:
-        Story.append(Paragraph(f""" <h1>Proration: {bigdf} to {basicdf}</h1>""", styleH1))
+        Story.append(Paragraph(f"""<h1>Proration: {bigdf} to {basicdf}</h1>""", styleH1))
         Story.append(Spacer(1,5))
-        Story.append(Paragraph("""<h2> Assignment type: </h2> """, styleH2))
+        Story.append(Paragraph("""<h2> Assignment type: </h2>""", styleH2))
         if popcol:
             Story.append(Paragraph("the assignment was done in terms of the "+str(pop)+" column in "+str(smalldf), styleN))
         else:
             Story.append(Paragraph("since no smaller geographic units were specified, the assignment was done based on area", styleN))
         Story.append(Spacer(1,12))
-        Story.append(Paragraph(f"""<h2> File: {basicdf} </h2> """, styleH2))
-        Story.append(Paragraph(f"""total number of {basicdf} units: {nbasic}  """, styleN))
-        Story.append(Paragraph(f"""<h2> File: {bigdf} </h2> """, styleH2))
-        Story.append(Paragraph(f""" total number of {bigdf} units: {nbig}""", styleN))
+        Story.append(Paragraph(f"""<h2> File: {basicdf} </h2>""", styleH2))
+        Story.append(Paragraph(f"""total number of {basicdf} units: {nbasic}""", styleN))
+        Story.append(Paragraph(f"""<h2> File: {bigdf} </h2>""", styleH2))
+        Story.append(Paragraph(f"""total number of {bigdf} units: {nbig}""", styleN))
 
         Story.append(Spacer(1,12))
-        Story.append(Paragraph(f"""<h2> Distance between {basicdf} and {bigdf} </h2> """, styleH2))
-        ptext = f"""number of {basicdf} units split by assignment: {nbasicsplit} """ 
+        Story.append(Paragraph(f"""<h2> Distance between {basicdf} and {bigdf} </h2>""", styleH2))
+        ptext = f"""number of {basicdf} units split by assignment: {nbasicsplit}""" 
         Story.append(Paragraph(ptext, styleN, bulletText='o'))
         Story.append(Spacer(1,5))
-        ptext = f"""average proportional size of split for {basicdf} units:  {basicSplitProportion} """
+        ptext = f"""average proportional size of split for {basicdf} units: {basicSplitProportion}"""
         Story.append(Paragraph(ptext, styleN, bulletText='o'))
         Story.append(Spacer(1,5))
-        ptext = f"""average proportional size of split for {bigdf} units:  {bigsplitsize} """
+        ptext = f"""average proportional size of split for {bigdf} units: {bigsplitsize}"""
         Story.append(Paragraph(ptext, styleN, bulletText='o'))
+        bvotes = votes
+        Story.append(Spacer(1,20))
 
     if rounded:
         Story.append(Paragraph(f""" <h1> Roundoff: {bigdf} to {basicdf} </h1> """, styleH1))
@@ -272,29 +282,29 @@ def prorate_and_roundoff_report(
         else:
             Story.append(Paragraph("since no smaller geographic units were specified, the assignment was done based on area", styleN))
         Story.append(Spacer(1,12))
-        Story.append(Paragraph(f"""<h2> File: {basicdf} </h2> """, styleH2))
-        Story.append(Paragraph(f"""total number of {basicdf} units: {nbasic}  """, styleN))
-        Story.append(Paragraph(f"""<h2> File: {bigdf} </h2> """, styleH2))
-        Story.append(Paragraph(f""" total number of {bigdf} units: {nbig}""", styleN))
+        Story.append(Paragraph(f"""<h2> File: {basicdf} </h2>""", styleH2))
+        Story.append(Paragraph(f"""total number of {basicdf} units: {nbasic}""", styleN))
+        Story.append(Paragraph(f"""<h2> File: {bigdf} </h2>""", styleH2))
+        Story.append(Paragraph(f"""total number of {bigdf} units: {nbig}""", styleN))
 
         Story.append(Spacer(1,12))
-        Story.append(Paragraph(f"""<h2> Distance between {basicdf} and {bigdf} </h2> """, styleH2))
-        ptext = f"""number of {basicdf} units split by assignment: {nbasicsplit} """ 
+        Story.append(Paragraph(f"""<h2> Distance between {basicdf} and {bigdf} </h2>""", styleH2))
+        ptext = f"""number of {basicdf} units split by assignment: {nbasicsplit}""" 
         Story.append(Paragraph(ptext, styleN, bulletText='o'))
         Story.append(Spacer(1,5))
-        ptext = f"""average proportional size of split for {basicdf} units:  {basicSplitProportion} """
+        ptext = f"""average proportional size of split for {basicdf} units: {basicSplitProportion}"""
         Story.append(Paragraph(ptext, styleN, bulletText='o'))
         Story.append(Spacer(1,5))
-        ptext = f"""average proportional size of split for {bigdf} units:  {bigsplitsize} """
+        ptext = f"""average proportional size of split for {bigdf} units: {bigsplitsize}"""
         Story.append(Paragraph(ptext, styleN, bulletText='o'))
         Story.append(Spacer(1,20))
 
 
     multifile_report(Story=Story, 
             list_of_inputs=[
-                {"filename":basicdf, "idcolumn":basic_geoid, "votecolumns":bvotes, "printcolumns":True}, 
-                {"filename":bigdf, "idcolumn":big_geoid, "votecolumns":votes, "printcolumns":True}, 
-                {"filename":smalldf, "idcolumn":small_geoid, "popcolumn":population, "printcolumns":True}
+                {"filename":basicdf, "dataframe":basicDF, "idcolumn":basic_geoid, "votecolumns":bvotes, "printcolumns":True}, 
+                {"filename":bigdf, "dataframe":bigDF, "idcolumn":big_geoid, "votecolumns":votes, "printcolumns":True}, 
+                {"filename":smalldf, "dataframe":smallDF, "idcolumn":small_geoid, "popcolumn":population, "printcolumns":True}
                 ]
             )
     doc.build(Story)

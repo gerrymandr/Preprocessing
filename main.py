@@ -294,20 +294,33 @@ top.mainloop()
 
 basicOutputFileName="basic"
 
-# now read files into geodataframes
+# now read files into geodataframes and join csvs if flagged
 if biggerUnits != '':
     bigDF = gp.read_file(biggerUnits)
+    if merge_big_flag:
+        bigMerge = pd.read_csv(biggestMergePath)
+        bigDF = bigDF.merge(bigMerge, left_on=big_geoid, right_on=merge_biggest_col)
+
 if basicUnits != '':
     basicDF = gp.read_file(basicUnits)
+    if merge_basic_flag:
+        basicMerge = pd.read_csv(basicMergePath)
+        basicDF = bigDF.merge(basicMerge, left_on=basic_geoid, right_on=merge_basic_col)
+
 if len(smallestUnits)>0:
     smallDF = gp.read_file(smallestUnits)
+    if merge_small_flag:
+        smallMerge = pd.read_csv(smallestMergePath)
+        smallDF = bigDF.merge(smallMerge, left_on=small_geoid, right_on=merge_smallest_col)
 else:
     smallDF = None
 lookupTable = None
 
 reportOutputFileName=[]
+p,r=False,False
 
 if prorateVar.get():
+    p=True
     lookupTable = getOverlayBetweenBasicAndLargeBySmall(smallDF, basicDF, bigDF, small_geoid, basic_geoid, big_geoid, voting)
     basicOutputFileName += "Prorated"
     reportOutputFileName=["Prorated"]
@@ -317,6 +330,7 @@ if prorateVar.get():
         basicDF[c] = [proratedValues[x][i] for x in basicDF[basic_geoid]]
 
 if roundoffVar.get():
+    r=True
     if lookupTable is None:
         lookupTable = getOverlayBetweenBasicAndLargeBySmall(smallDF, basicDF, bigDF, small_geoid, basic_geoid, big_geoid, voting)
     basicOutputFileName += "Rounded"
@@ -326,7 +340,7 @@ if roundoffVar.get():
 
 
 basicDF.to_file(basicOutputFileName+".shp")
-print("wrote to new shapefile: %s"%basicOutputFileName)
+print("wrote to new shapefile: %s"%basicOutputFileName+".shp")
 
 # output data for report generation
 if reportVar.get():
@@ -353,4 +367,13 @@ if reportVar.get():
     
     else:
         reportOutputFileName = "_and_".join(reportOutputFileName)+"_report.pdf"
-        prorate_and_roundoff_report(reportOutputFileName, biggerUnits, basicOutputFileName+".shp", smallestUnits, big_geoid, basic_geoid, small_geoid, population, voting, lookupTable)
+        prorate_and_roundoff_report(
+                reportOutputFileName=reportOutputFileName,
+                biggerUnits=biggerUnits, bigDF=bigDF, big_geoid=big_geoid,
+                basicUnits=basicOutputFileName+".shp", basicDF=basicDF, basic_geoid=basic_geoid,
+                smallestUnits=smallestUnits, smallDF=smallDF, small_geoid=small_geoid,
+                population=population,
+                votes=voting,
+                prorated=p,
+                rounded=r,
+                lookupTable=lookupTable)
