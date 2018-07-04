@@ -337,13 +337,20 @@ if reportVar.get():
         reportOutputFileName = "_and_".join(cleaned_names)+"_report.pdf"
         input_list = []
         if biggerUnits != '':
-            input_list.append([biggerUnits, big_geoid])
+            mydict={"filename":biggerUnits, "idcolumn":big_geoid}
+            if voting is not None:
+                mydict["votecolumns"] = voting
+            input_list.append(mydict)
         if basicUnits != '':
-            input_list.append([basicUnits, basic_geoid])
+            input_list.append({"filename":basicUnits, "idcolumn":basic_geoid})
         if smallestUnits != '':
-            input_list.append([smallestUnits, small_geoid])
+            mydict = {"filename":smallestUnits, "idcolumn":small_geoid}
+            if popcolumn is not None:
+                mydict["popcolumn"] = population
+            input_list.append(mydict)
+
         multifile_report(reportOutputFileName, input_list)
     
     else:
         reportOutputFileName = "_and_".join(reportOutputFileName)+"_report.pdf"
-        prorate_and_roundoff_report(reportOutputFileName, biggerUnits, basicUnits, smallestUnits, big_geoid, basic_geoid, small_geoid, population, voting, lookupTable)
+        prorate_and_roundoff_report(reportOutputFileName, biggerUnits, basicOutputFileName+".shp", smallestUnits, big_geoid, basic_geoid, small_geoid, population, voting, lookupTable)
