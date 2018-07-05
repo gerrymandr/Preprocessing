@@ -161,7 +161,7 @@ def prorateWithDFs(bigDF, basicDF, smallDF=None, bigIDCol="GEOID", basicIDCol="G
     return dict(zip(myData.index, zip(*[myData[c] for c in bigVoteColumns])))
 
 
-def roundoffWithDFs(basicDF, bigDF, smallDF, basicID, bigID, smallID, smallPopCol=None, lookup=None):
+def roundoffWithDFs(basicDF, bigDF, smallDF=None, basicID=None, bigID=None, smallID=None, smallPopCol=None, lookup=None):
     """ Create lookup table that assigns each basicDF unit to a bigDF unit
         based on either area of overlap (if smallDF or smallPopCol is not valid)
         or else based on the value of smallDF units that are inside the overlap of given
