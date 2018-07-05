@@ -219,13 +219,13 @@ def prorate_and_roundoff_report(
 
     # get all of the units in basicDF that have multiple bigDF entries 
     # that correspond to it(i.e. the ones that are split by bigDF units)
-    basicsplit = [x for x in lookupTable["basicUnits"].unique() if len(lookupTable.loc[lookupTable["basicUnits"]== x, :]) > 1]
+    splitbasicunits = [x for x in basicDF[basic_geoid] if len(lookupTable.loc[lookupTable["basicUnits"]== x, :]) > 1]
 
     # get the average number of pieces each of the split basicUnits is in
-    avgNumOfSplits = len(lookupTable.loc[lookupTable["basicUnits"].isin(basicsplit), "bigUnits"]) * 1.0 / len(basicsplit)
+    avgNumOfSplits = len(lookupTable.loc[lookupTable["basicUnits"].isin(splitbasicunits), "bigUnits"]) * 1.0 / len(splitbasicunits)
 
     # get area of each piece 
-    splitOnes = lookupTable.loc[ lookupTable['basicUnits'].isin(basicsplit), ["area", "basicUnits"]]
+    splitOnes = lookupTable.loc[lookupTable['basicUnits'].isin(splitbasicunits), ["area", "basicUnits"]]
     basicsplit = splitOnes["basicUnits"].tolist()
 
     intersectArea = np.array(splitOnes['area'].tolist())

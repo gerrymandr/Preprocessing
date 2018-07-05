@@ -321,7 +321,7 @@ p,r=False,False
 
 if prorateVar.get():
     p=True
-    lookupTable = getOverlayBetweenBasicAndLargeBySmall(smallDF, basicDF, bigDF, small_geoid, basic_geoid, big_geoid, voting)
+    lookupTable = getOverlayBetweenBasicAndLargeBySmall(smallDF, basicDF, bigDF, small_geoid, population, basic_geoid, big_geoid, voting)
     basicOutputFileName += "Prorated"
     reportOutputFileName=["Prorated"]
     proratedValues = prorateWithDFs(bigDF, basicDF, smallDF, big_geoid, basic_geoid, small_geoid, population, voting, lookupTable)
