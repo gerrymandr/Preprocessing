@@ -79,15 +79,15 @@ def fasterLookupTable(largerShapes, smallerShapes, largeIDCol, smallIDCol, by_ar
 def getOverlayBetweenBasicAndLargeBySmall(smallDF, basicDF, bigDF, smallIDCol="GEOID", smallPopCol=None, basicIDCol="GEOID", bigIDCol="GEOID", bigVoteColumn=["votes"]):
     if (smallDF is None) or (smallPopCol is None):
         # if no smaller units specified, then prorate by area of overlap between big and basic units
-        smallToBig = fasterLookupTable(bigDF, basicDF, bigIDCol, basicIDCol, by_area=True)
+        smallToBig = fasterLookupTable(largerShapes=bigDF, smallerShapes=basicDF, largeIDCol=bigIDCol, smallIDCol=basicIDCol, by_area=True)
         smallToBig = smallToBig.rename(columns={"large":"bigUnits","small":"basicUnits"})
         smallToBig["pop"] = smallToBig["area"]
         for c in bigVoteColumn:
             smallToBig[c] = [bigDF.loc[bigDF[bigIDCol] == x, c].tolist()[0] for x in smallToBig['bigUnits']]
     else:
-        smallToBig = fasterLookupTable(bigDF, smallDF, bigIDCol, smallIDCol)
+        smallToBig = fasterLookupTable(largerShapes=bigDF, smallerShapes=smallDF, largeIDCol=bigIDCol, smallIDCol=smallIDCol)
         smallToBig = smallToBig.rename(columns={"large":"bigUnits"})
-        smallToBasic = fasterLookupTable(basicDF, smallDF, basicIDCol, smallIDCol)
+        smallToBasic = fasterLookupTable(largerShapes=basicDF, smallerShapes=smallDF, largeIDCol=basicIDCol, smallIDCol=smallIDCol)
         smallToBasic = smallToBasic.rename(columns={"large":"basicUnits"})
         smallToBasic["pop"] = [smallDF.loc[smallDF[smallIDCol] == x, smallPopCol].values[0] for x in smallToBasic["small"]]
         for c in bigVoteColumn:
@@ -182,11 +182,11 @@ def roundoffWithDFs(basicDF, bigDF, smallDF=None, basicID=None, bigID=None, smal
 
     if lookup is None:
         if smallDF is not None:
-            smallToBig = fasterLookupTable(bigDF, smallDF, bigID, smallID)["large","small"]
+            smallToBig = fasterLookupTable(largerShapes=bigDF, smallerSHapes=smallDF, largeIDCol=bigID, smallIDCol=smallID)["large","small"]
             smallToBasic = fasterLookupTable(basicDF, smallDF, basicID, smallID).rename(columns={"large":"basicUnits"})
             lookup = smallToBig.merge(smallToBasic).rename(columns={"large":"bigUnits"})
         else:
-            lookup = fasterLookupTable(bigDF, basicDF, bigID, basicID, by_area=True).rename(columns={'small':"basicUnits","large":"bigUnits"})
+            lookup = fasterLookupTable(largerShapes=bigDF, smallerShapes=basicDF, largeIDCol=bigID, smallIDCol=basicID, by_area=True).rename(columns={'small':"basicUnits","large":"bigUnits"})
 
     lookup['pop'] = lookup['area']
     if smallPopCol:
