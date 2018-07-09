@@ -8,9 +8,9 @@ import tkinter
 from tkinter import filedialog
 
 from prorationAndRoundoff import prorateWithDFs, roundoffWithDFs, getLookupTable, getOverlayBetweenBasicAndLargeBySmall
-from gen_report import prorate_and_roundoff_report, multifile_report
+#from gen_report import prorate_and_roundoff_report, multifile_report
 
-windowSize = [800, 425]
+windowSize = [800, 450]
 top = Tk()
 top.geometry("x".join([str(x) for x in windowSize]))
 top.title('Preprocess that data!')
@@ -35,21 +35,13 @@ merge_biggest_col = ''
 merge_smallest_col = ''
 
 
-image = tkinter.PhotoImage(file="check1.png")
-check1 = tkinter.Label(image=image)
-check2 = tkinter.Label(image=image)
-check3 = tkinter.Label(image=image)
-check4 = tkinter.Label(image=image)
-check5 = tkinter.Label(image=image)
-check6 = tkinter.Label(image=image)
-
 num_cols=3
 num_rows=4
 offset = 0.03
 inset_proportion=.1
 # Grid Layout
-rowDepth=[inset_proportion + x * (1.0 / num_rows + y * offset) for y in [1, 3] for x in range(num_rows)]
-colDepth=[inset_proportion + x * (1.0 / num_cols + y * offset) for y in [0, 2] for x in range(num_cols)]
+rowDepth=[inset_proportion + x * (1 / (num_rows+1) + y * offset) for y in [3, 6] for x in range(num_rows)]
+colDepth=[inset_proportion + x * (1 / (num_cols+1) + y * offset) for y in [0, 2] for x in range(num_cols)]
 relColWidth = 1.0 / num_cols
 relRowHeight = 1.0 / num_rows
 thirdsSep = [4 / 72, 24 / 72, 26 / 72, 46 / 72, 48 / 72, 68 / 72]
@@ -139,13 +131,13 @@ def selectSmallestMerge():
 
 # 1.0: TOP ROW (title)
 num1 = Frame(top)
-num1.place(x=0, y=0, relwidth=1, relheight=1/(num_rows+1))
+num1.place(x=0, y=3*offset, relwidth=1, relheight=1/(num_rows))
 topLabel = Label(num1, text="Preprocess that Data!", anchor=W, font="Helvetica 30")
 topLabel.place(relx=thirdsSep[0], y=0, relwidth=1)
 
 # 2.0 SELECT UNITS ROW (title)
 num2 = Frame(top)
-num2.place(relx=0, rely=rowDepth[0]+offset, relwidth=1, relheight=1/(num_rows+1))
+num2.place(relx=0, rely=rowDepth[0]+offset, relwidth=1, relheight=1/(num_rows))
 
 num2_1 = Frame(num2)
 num2_1.place(relx=0, rely=0, relwidth=1, relheight=0.25)
@@ -233,15 +225,15 @@ csv3.place(relx=offset, rely=.65)
 
 # 3.0 ADD CSV DATA (title)
 num3 = Frame(top)
-num3.place(relx=0, rely=rowDepth[1], relwidth=1, relheight=1/(num_rows+1))
+num3.place(relx=0, rely=rowDepth[1], relwidth=1, relheight=1/(num_rows))
 num3_1 = Frame(num3)
-num3_1.place(relx=0, rely=0, relwidth=1, relheight=0.25)
+num3_1.place(relx=0, rely=0, relwidth=1, relheight=0.2)
 selectLabel = Label(num3_1, text="MERGE COLUMNS", anchor=W, font="Helvetica 14")
 selectLabel.place(relx=thirdsSep[0], rely=0, relwidth=1)
 
 # 3.1 SELECT UNITS ROW (basic)
 num3_2 = Frame(num3)
-num3_2.place(relx=thirdsSep[0], rely=rowDepth[1]+offset, relwidth=thirdsLen, relheight=0.75)
+num3_2.place(relx=thirdsSep[0], rely=.2, relwidth=thirdsLen, relheight=0.75)
 basicf2 = Frame(num3_2, bg=lBasicColor)
 basicf2.place(relx=0, rely=0, relwidth=1, relheight=1)
 def clear_basic_csvidprompt(event):
@@ -257,7 +249,7 @@ basicMerge.place(relx=0.5+offset, rely=0.15)
 
 # 3.2 SELECT UNITS ROW (big)
 num3_3 = Frame(num3)
-num3_3.place(relx=thirdsSep[2], rely=rowDepth[1]+offset, relwidth=thirdsLen, relheight=0.75)
+num3_3.place(relx=thirdsSep[2], rely=.2, relwidth=thirdsLen, relheight=0.75)
 bigf2 = Frame(num3_3, bg=lBigColor)
 bigf2.place(relx=0, rely=0, relwidth=1, relheight=1)
 def clear_big_csvidprompt(event):
@@ -272,7 +264,7 @@ bigMerge.place(relx=0.5+offset, rely=0.15)
 
 # 3.3 SELECT UNITS ROW (small)
 num3_4 = Frame(num3)
-num3_4.place(relx=thirdsSep[4], rely=rowDepth[1]+offset, relwidth=thirdsLen, relheight=0.75)
+num3_4.place(relx=thirdsSep[4], rely=.2, relwidth=thirdsLen, relheight=0.75)
 smallf2 = Frame(num3_4, bg=lSmallColor)
 smallf2.place(relx=0, rely=0, relwidth=1, relheight=1)
 def clear_small_csvidprompt(event):
@@ -380,7 +372,7 @@ if prorateVar.get():
 if roundoffVar.get():
     r=True
     if lookupTable is None:
-        lookupTable = getOverlayBetweenBasicAndLargeBySmall(smallDF, basicDF, bigDF, small_geoid, basic_geoid, big_geoid, voting)
+        lookupTable = getOverlayBetweenBasicAndLargeBySmall(smallDF, basicDF, bigDF, small_geoid, basicIDCol=basic_geoid, bigIDCol=big_geoid, bigVoteColumn=[])
     basicOutputFileName += "Rounded"
     reportOutputFileName.append("Roundoff")
     roundedValues = roundoffWithDFs(
@@ -400,6 +392,7 @@ print("wrote to new shapefile: %s"%basicOutputFileName+".shp")
 
 
 
+"""
 # output data for report generation
 if reportVar.get():
     if len(reportOutputFileName) < 1:
@@ -435,4 +428,5 @@ if reportVar.get():
                 prorated=p,
                 rounded=r,
                 lookupTable=lookupTable)
+"""
 
