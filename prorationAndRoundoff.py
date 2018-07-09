@@ -142,7 +142,7 @@ def prorateWithDFs(bigDF, basicDF, smallDF=None, bigIDCol="GEOID", basicIDCol="G
                 myData[c] = [bigDF.loc[bigDF[bigIDCol] == x, c].tolist()[0] for x in myData['bigUnits']]
 
     columns = [x for x in bigVoteColumns]
-    columns.extend(['pop', 'area'])
+    columns.extend([smallIDCol or 'pop', 'area'])
 
     myData = myData.groupby(["basicUnits", "bigUnits"])[columns].sum()
     [small, big] = list(zip(*myData.index.tolist()))
