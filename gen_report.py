@@ -1,4 +1,6 @@
 import os
+import random
+
 import numpy as np
 import pysal as ps
 import pandas as pd
@@ -271,15 +273,19 @@ def roundoff_report(
             basicUnits = picsName+"basicV.png"
             roundedUnits = picsName+"roundedV.png"
 
-            bigDF.plot(column=big_geoid)
+            bigDF.plot(column=big_geoid, cmap='YlGnBu')
             plt.title("Before Rounding")
             plt.savefig(bigUnits)
 
-            basicDF.plot(column=basic_geoid)
+            # randomize the colors so that vtds show up
+            l1 = [x for x in basicDF[basic_geoid]]
+            random.shuffle(l1)
+            basicDF['random'] = l1
+            basicDF.plot(column='random', cmap='YlGnBu')
             plt.title("Roundoff Units")
             plt.savefig(basicUnits)
 
-            basicDF.plot(column='CD')
+            basicDF.plot(column='CD', cmap='YlGnBu')
             plt.title("After Rounding")
             plt.savefig(roundedUnits)
 

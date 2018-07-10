@@ -35,8 +35,12 @@ Using in an interactive python session
 
 To use this code for any of the above options, open a terminal, 
 navigate to the Preprocessing folder in terminal, and type 
+
 .. code-block:: python
+
     python main.py
+
+
 This launches an interactive prompt with 3 tabs, one for 
 each of the proeccesses that can be done. 
 

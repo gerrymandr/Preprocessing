@@ -179,7 +179,7 @@ class ApplicationTab(ttk.Frame):
     def selectPath(self, selfUnitsPath, selfUnitsButton):
         setattr(self, selfUnitsPath, filedialog.askopenfilename())
         selectedFile = getattr(self, selfUnitsPath)
-        getattr(self, selfUnitsButton).configure(text='...'+selectedFile[-10:])
+        getattr(self, selfUnitsButton).configure(text='...'+selectedFile[-8:])
         print("File selected : " + selectedFile)
     
     def enable_basic_csv(self):
