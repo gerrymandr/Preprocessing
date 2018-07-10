@@ -11,7 +11,7 @@ from tkinter import filedialog
 from tkinter.scrolledtext import ScrolledText
 
 from prorationAndRoundoff import prorateWithDFs, roundoffWithDFs, getOverlayBetweenBasicAndLargeBySmall
-from gen_report import prorate_report, roundoff_report
+from gen_report import prorate_report, roundoff_report, generic_shapefile_report
 
 windowSize = [800, 425]
 
@@ -63,7 +63,11 @@ def callback(page):
     if page.basicUnits != '':
         basicDF = gp.read_file(page.basicUnits)
         if merge_basic_col != '' and page.basicMergePath != '':
-            basicMerge = pd.read_csv(page.basicMergePath)
+            filename = page.basicMergePath
+            if filename.split(".")[-1] == "csv":
+                basicMerge = pd.read_csv(page.basicMergePath)
+            elif filename.split(".")[-1] == "xlsx":
+                basicMerge = pd.read_excel(page.basicMergePath)
             basicDF = basicDF.merge(basicMerge, left_on=basic_geoid, right_on=merge_basic_col)
     else:
         raise Exception("ERROR: Must enter a valid file name for basic units")
@@ -71,13 +75,21 @@ def callback(page):
     if page.biggerUnits != '':
         bigDF = gp.read_file(page.biggerUnits)
         if merge_biggest_col != '' and page.biggestMergePath != '':
-            bigMerge = pd.read_csv(page.biggestMergePath)
+            filename = page.biggestMergePath
+            if filename.split(".")[-1] == "csv":
+                bigMerge = pd.read_csv(page.biggestMergePath)
+            elif filename.split(".")[-1] == "xlsx":
+                bigMerge = pd.read_excel(page.biggestMergePath)
             bigDF = bigDF.merge(bigMerge, left_on=big_geoid, right_on=merge_biggest_col)
 
     if len(page.smallestUnits)>0:
         smallDF = gp.read_file(page.smallestUnits)
         if merge_smallest_col != '' and page.smallestMergePath != '':
-            smallMerge = pd.read_csv(page.smallestMergePath)
+            filename = page.basicMergePath
+            if filename.split(".")[-1] == "csv":
+                smallMerge = pd.read_csv(page.smallestMergePath)
+            elif filename.split(".")[-1] == "xlsx":
+                smallMerge = pd.read_excel(page.smallMergePath)
             smallDF = bigDF.merge(smallMerge, left_on=small_geoid, right_on=merge_smallest_col)
     else:
         smallDF = None
@@ -114,8 +126,18 @@ def callback(page):
 
         basicDF.to_file("Rounded.shp")
         print("\nwrote to new shapefile: Rounded.shp\n")
-
         roundoff_report("Roundoff.html", bigDF, basicDF, big_geoid, basic_geoid)
+        print("\nReport written to file: Roundoff.html\n")
+
+    elif page.title == "Merge & Report":
+        voteColumns = [x.strip() for x in str(page.basicShapefileCols.get()).split(",")]
+
+        sname = os.path.basename(page.basicUnits.split('.')[0])
+        outputName = f"Report_on_{sname}.html"
+
+        generic_shapefile_report(outputName, dataFrame=[sname, basicDF], idColumn=basic_geoid, voteColumns=voteColumns, electionDicts=None)
+        print(f"\nReport written to file: {outputName}\n")
+
     else:
         raise Exception("ERROR: Invalid page")
 
@@ -167,6 +189,7 @@ class ApplicationTab(ttk.Frame):
         else:
             self.basicMergeEntry.configure(state='disabled')
             self.basicMerge.configure(state='disabled')
+
     def enable_big_csv(self):
         if self.bigCheck.get():
             self.bigMergeEntry.configure(state='normal')
@@ -174,6 +197,7 @@ class ApplicationTab(ttk.Frame):
         else:
             self.bigMergeEntry.configure(state='disabled')
             self.bigMerge.configure(state='disabled')
+
     def enable_small_csv(self):
         if self.smallCheck.get():
             self.smallMerge.configure(state='normal')
@@ -184,9 +208,9 @@ class ApplicationTab(ttk.Frame):
 
     def __init__(self, title, root):
         tk.Frame.__init__(self, root)
-        
+
         self.title = title
-        
+
         self.basicUnits = ''
         self.biggerUnits = ''
         self.smallestUnits = ''
@@ -199,6 +223,7 @@ class ApplicationTab(ttk.Frame):
         self.num2 = tk.Frame(self)
         self.num3 = tk.Frame(self)
         self.num4 = tk.Frame(self)
+        self.optFloat = tk.Frame(self)
 
         # 1.0 TITLE ROW
         self.topLabel = tk.Label(self.num1, text="Preprocess that Data!", anchor=tk.W, font="Helvetica 30")
@@ -220,7 +245,7 @@ class ApplicationTab(ttk.Frame):
         self.bigf1 = tk.Frame(self.num2_3, bg=bigColor)
         self.bigLabel = tk.Label(self.num2_3, bg=bigColor, fg=clearColor, text="")
         self.geoid2 = tk.Entry(self.bigf1, width=10)
-        
+
         self.big = tk.Button(self.bigf1, text="Browse",
                      command=partial(self.selectPath, 'biggerUnits', "big"), width=8, height=1)
         self.voteEntry = tk.Entry(self.num2_3, width=20)
@@ -234,11 +259,10 @@ class ApplicationTab(ttk.Frame):
         self.small = tk.Button(self.smallf1, text="Browse",
                      command=partial(self.selectPath, 'smallestUnits', "small"), width=8, height=1)
         self.popEntry = tk.Entry(self.num2_4, width=20)
-        
 
         # 3.0 ADD CSV DATA (title)
         self.num3_1 = tk.Frame(self.num3)
-        self.mergeLabel = tk.Label(self.num3_1, text="MERGE COLUMNS FROM .csv (all columns of data will be added to shapefile)", anchor=tk.W, font="Helvetica 14")
+        self.mergeLabel = tk.Label(self.num3_1, text="MERGE COLUMNS FROM .csv (all columns added to shapefile)", anchor=tk.W, font="Helvetica 14")
 
         # 3.1 ADD CSV DATA (basic)
         self.num3_2 = tk.Frame(self.num3)
@@ -249,7 +273,7 @@ class ApplicationTab(ttk.Frame):
         self.basicMergeLabel = ttk.Label(self.basicf2, text=self.basicMergePath,font=("Helvtica", 8))
         self.basicMergeEntry.configure(state='disabled')
         self.basicMerge.configure(state='disabled')
-        
+
         self.basicCheck = tk.BooleanVar()
         self.csv1 = tk.Checkbutton(self.num3_2, text="add CSV data", variable=self.basicCheck,
                 onvalue=True, offvalue=False, height=1, width=12, bg=lBasicColor, 
@@ -284,13 +308,16 @@ class ApplicationTab(ttk.Frame):
         self.csv3 = tk.Checkbutton(self.num3_4, text="add CSV data", variable=self.smallCheck,
                 onvalue=True, offvalue=False, height=1, width=12, bg=lSmallColor, 
                 command=self.enable_small_csv)
-        
+
         # 4.0 PROCESS BUTTON
-        self.num4_3 = tk.Frame(self.num4, bg=clearColor)
+        self.num4_3 = tk.Frame(self.num4)
         #self.processLabel = tk.Label(self.num4_3, text="ANALYSIS", anchor=tk.W, font="Helvetica 14", bg=columnNamesColor)
-        
+
+        self.basicShapefileCols = tk.Entry(self.optFloat, width=30)
+        self.basicShapefileColText = tk.Label(self.optFloat, text="(Optional) vote columns to report report on: ")
+
         # Creates the button to process and pass all variables
-        self.b = tk.Button(self.num4_3, text=self.title + '!', width=10, command=partial(callback, self))
+        self.b = tk.Button(self.num4_3, text=self.title + '!', width=15, command=partial(callback, self))
         
     
     def show(self):
@@ -304,93 +331,133 @@ class ApplicationTab(ttk.Frame):
         self.num1.place(relx=0, rely=0, relwidth=1, relheight=rowDepth[0])
         self.topLabel.place(relx=thirdsSep[0], rely=0, relwidth=1, relheight=1)
 
-        # 2.1 SELECT UNITS ROW (basic)
-        self.num2.place(relx=0, rely=rowDepth[0], relwidth=1, relheight=rowDepth[1] - rowDepth[0])
-        self.num2_1.place(relx=0, rely=0, relwidth=1, relheight=0.15)
-        self.selectLabel.place(relx=thirdsSep[0], rely=0, relwidth=1, relheight=1)
-        
-        self.num2_2.place(relx=thirdsSep[0], rely=.15, relwidth=thirdsLen, relheight=0.85)
-        self.basicf1.place(relx=0, rely=0, relwidth=1, relheight=1)
-        self.basicLabel.place(relx=0, rely=0)
-        self.geoid1.insert(tk.END, "ID Column")
-        self.geoid1.bind("<Button-1>", self.clear_basic_idprompt)
-        self.geoid1.place(relx=0.5+offset, rely=0.33)
-        self.basic.place(relx=offset, rely=0.33)
 
-        # 2.2 SELECT UNITS ROW (big)
-        self.num2_3.place(relx=thirdsSep[2], rely=.15, relwidth=thirdsLen, relheight=0.85)
-        self.bigf1.place(relx=0, rely=0, relwidth=1, relheight=1)
-        if self.title == "Prorate":
-            self.bigLabel.configure(text="units with data to prorate")
-        elif self.title == "Roundoff":
-            self.bigLabel.configure(text="congressional districts to round")
-        self.bigLabel.place(relx=0, rely=0)
-        self.geoid2.insert(tk.END, "ID Column")
-        self.geoid2.bind("<Button-1>", self.clear_big_idprompt)
-        self.geoid2.place(relx=0.5+offset, rely=0.33)
-        if self.title == "Prorate":
-            self.voteEntry.insert(tk.END, "Vote columns to prorate")
-            self.voteEntry.bind("<Button-1>", self.clear_vote_column)
-            self.voteEntry.place(relx=offset, rely=.66)
-        self.big.place(relx=offset, rely=0.33)
+        if self.title != "Merge & Report":
 
-        # 2.3 SELECT UNITS ROW (small)
-        self.num2_4.place(relx=thirdsSep[4], rely=.15, relwidth=thirdsLen, relheight=0.85)
-        self.smallf1.place(relx=0, rely=0, relwidth=1, relheight=1)
-        self.smallLabel.place(relx=0, rely=0)
-        self.geoid3.insert(tk.END, "ID Column")
-        self.geoid3.bind("<Button-1>", self.clear_small_idprompt)
-        self.geoid3.place(relx=0.5+offset, rely=0.33)
-        self.popEntry.insert(tk.END, "Population column Name")
-        self.popEntry.bind("<Button-1>", self.clear_pop_column)
-        self.small.place(relx=offset, rely=0.33)
-        self.popEntry.place(relx=offset,rely=.66)
+            # 2.1 SELECT UNITS ROW (basic)
+            self.num2.place(relx=0, rely=rowDepth[0], relwidth=1, relheight=rowDepth[1] - rowDepth[0])
+            self.num2_1.place(relx=0, rely=0, relwidth=1, relheight=0.15)
+            self.selectLabel.place(relx=thirdsSep[0], rely=0, relwidth=1, relheight=1)
 
-        # 3
-        self.num3.place(relx=0, rely=rowDepth[2], relwidth=1, relheight=rowDepth[3] - rowDepth[2])
-        self.num3_1.place(relx=0, rely=0, relwidth=1, relheight=0.15)
-        self.mergeLabel.place(relx=thirdsSep[0], rely=0, relwidth=1, relheight=1)
-        self.num3_2.place(relx=thirdsSep[0], rely=.15, relwidth=thirdsLen, relheight=0.85)
-        self.basicf2.place(relx=0, rely=0, relwidth=1, relheight=1)
-        self.basicMergeEntry.configure(state='normal')
-        self.basicMergeEntry.insert(tk.END, "CSV ID")
-        self.basicMergeEntry.configure(state='disabled')
-        self.basicMergeEntry.bind("<Button-1>", self.clear_basic_csvidprompt)
-        self.basicMergeEntry.place(relx=0.5+offset, rely=0.55)
-        self.basicMerge.place(relx=offset, rely=0.55)
-        self.csv1.pack()
-        self.csv1.place(relx=0.0, rely=.15)
+            self.num2_2.place(relx=thirdsSep[0], rely=.15, relwidth=thirdsLen, relheight=0.85)
+            self.basicf1.place(relx=0, rely=0, relwidth=1, relheight=1)
+            self.basicLabel.place(relx=0, rely=0)
+            self.geoid1.insert(tk.END, "ID Column")
+            self.geoid1.bind("<Button-1>", self.clear_basic_idprompt)
+            self.geoid1.place(relx=0.5+offset, rely=0.33)
+            self.basic.place(relx=offset, rely=0.33)
 
-        self.num3_3.place(relx=thirdsSep[2], rely=.15, relwidth=thirdsLen, relheight=0.85)
-        self.bigf2.place(relx=0, rely=0, relwidth=1, relheight=1)
-        self.bigMergeEntry.configure(state='normal')
-        self.bigMergeEntry.insert(tk.END, "CSV ID")
-        self.bigMergeEntry.configure(state='disabled')
-        self.bigMergeEntry.bind("<Button-1>", self.clear_big_csvidprompt)
-        self.bigMergeEntry.place(relx=0.5+offset, rely=0.55)
-        self.bigMerge.place(relx=offset, rely=0.55)
-        self.csv2.pack()
-        self.csv2.place(relx=0.0, rely=.15)
+            # 2.2 SELECT UNITS ROW (big)
+            self.num2_3.place(relx=thirdsSep[2], rely=.15, relwidth=thirdsLen, relheight=0.85)
+            self.bigf1.place(relx=0, rely=0, relwidth=1, relheight=1)
+            if self.title == "Prorate":
+                self.bigLabel.configure(text="units with data to prorate")
+            elif self.title == "Roundoff":
+                self.bigLabel.configure(text="congressional districts to round")
+            self.bigLabel.place(relx=0, rely=0)
+            self.geoid2.insert(tk.END, "ID Column")
+            self.geoid2.bind("<Button-1>", self.clear_big_idprompt)
+            self.geoid2.place(relx=0.5+offset, rely=0.33)
+            if self.title == "Prorate":
+                self.voteEntry.insert(tk.END, "Vote columns to prorate")
+                self.voteEntry.bind("<Button-1>", self.clear_vote_column)
+                self.voteEntry.place(relx=offset, rely=.66)
+            self.big.place(relx=offset, rely=0.33)
 
-        self.num3_4.place(relx=thirdsSep[4], rely=.15, relwidth=thirdsLen, relheight=0.85)
-        self.smallf2.place(relx=0, rely=0, relwidth=1, relheight=1)
-        self.smallMergeEntry.configure(state='normal')
-        self.smallMergeEntry.insert(tk.END, "CSV ID")
-        self.smallMergeEntry.configure(state='disabled')
-        self.smallMergeEntry.bind("<Button-1>", self.clear_small_csvidprompt)
-        self.smallMergeEntry.place(relx=0.5+offset, rely=0.55)
-        self.smallMerge.place(relx=offset, rely=0.55)
-        self.csv3.pack()
-        self.csv3.place(relx=0.0, rely=.15)
+            # 2.3 SELECT UNITS ROW (small)
+            self.num2_4.place(relx=thirdsSep[4], rely=.15, relwidth=thirdsLen, relheight=0.85)
+            self.smallf1.place(relx=0, rely=0, relwidth=1, relheight=1)
+            self.smallLabel.place(relx=0, rely=0)
+            self.geoid3.insert(tk.END, "ID Column")
+            self.geoid3.bind("<Button-1>", self.clear_small_idprompt)
+            self.geoid3.place(relx=0.5+offset, rely=0.33)
+            self.popEntry.insert(tk.END, "Population column Name")
+            self.popEntry.bind("<Button-1>", self.clear_pop_column)
+            self.small.place(relx=offset, rely=0.33)
+            self.popEntry.place(relx=offset,rely=.66)
+
+            # 3
+            self.num3.place(relx=0, rely=rowDepth[2], relwidth=1, relheight=rowDepth[3] - rowDepth[2])
+            self.num3_1.place(relx=0, rely=0, relwidth=1, relheight=0.15)
+            self.mergeLabel.place(relx=thirdsSep[0], rely=0, relwidth=1, relheight=1)
+            self.num3_2.place(relx=thirdsSep[0], rely=.15, relwidth=thirdsLen, relheight=0.85)
+            self.basicf2.place(relx=0, rely=0, relwidth=1, relheight=1)
+            self.basicMergeEntry.configure(state='normal')
+            self.basicMergeEntry.insert(tk.END, "CSV ID")
+            self.basicMergeEntry.configure(state='disabled')
+            self.basicMergeEntry.bind("<Button-1>", self.clear_basic_csvidprompt)
+            self.basicMergeEntry.place(relx=0.5+offset, rely=0.55)
+            self.basicMerge.place(relx=offset, rely=0.55)
+            self.csv1.pack()
+            self.csv1.place(relx=0.0, rely=.15)
+
+            self.num3_3.place(relx=thirdsSep[2], rely=.15, relwidth=thirdsLen, relheight=0.85)
+            self.bigf2.place(relx=0, rely=0, relwidth=1, relheight=1)
+            self.bigMergeEntry.configure(state='normal')
+            self.bigMergeEntry.insert(tk.END, "CSV ID")
+            self.bigMergeEntry.configure(state='disabled')
+            self.bigMergeEntry.bind("<Button-1>", self.clear_big_csvidprompt)
+            self.bigMergeEntry.place(relx=0.5+offset, rely=0.55)
+            self.bigMerge.place(relx=offset, rely=0.55)
+            self.csv2.pack()
+            self.csv2.place(relx=0.0, rely=.15)
+
+            self.num3_4.place(relx=thirdsSep[4], rely=.15, relwidth=thirdsLen, relheight=0.85)
+            self.smallf2.place(relx=0, rely=0, relwidth=1, relheight=1)
+            self.smallMergeEntry.configure(state='normal')
+            self.smallMergeEntry.insert(tk.END, "CSV ID")
+            self.smallMergeEntry.configure(state='disabled')
+            self.smallMergeEntry.bind("<Button-1>", self.clear_small_csvidprompt)
+            self.smallMergeEntry.place(relx=0.5+offset, rely=0.55)
+            self.smallMerge.place(relx=offset, rely=0.55)
+            self.csv3.pack()
+            self.csv3.place(relx=0.0, rely=.15)
+
+        elif self.title == "Merge & Report":
+
+            # 2.1 SELECT UNITS ROW (basic)
+            self.num2.place(relx=0, rely=rowDepth[0], relwidth=.5, relheight=rowDepth[1] - rowDepth[0])
+            self.num2_1.place(relx=0, rely=0, relwidth=1, relheight=0.15)
+            self.selectLabel.place(relx=thirdsSep[0], rely=0, relwidth=1, relheight=1)
+
+            self.num2_2.place(relx=thirdsSep[0], rely=.15, relwidth=1 - 2 * thirdsSep[0], relheight=0.85)
+            self.basicf1.place(relx=0, rely=0, relwidth=1, relheight=1)
+            self.basicLabel.place(relx=0, rely=0)
+            self.geoid1.insert(tk.END, "ID Column")
+            self.geoid1.bind("<Button-1>", self.clear_basic_idprompt)
+            self.geoid1.place(relx=0.5+offset, rely=0.33)
+            self.basic.place(relx=offset, rely=0.33)
+
+            # 3
+            self.num3.place(relx=0.5, rely=rowDepth[0], relwidth=.5, relheight=rowDepth[1] - rowDepth[0])
+            self.num3_1.place(relx=0, rely=0, relwidth=1, relheight=0.15)
+            self.mergeLabel.configure(text="MERGE CSV FILE")
+            self.mergeLabel.place(relx=thirdsSep[0], rely=0, relwidth=1, relheight=1)
+            self.num3_2.place(relx=thirdsSep[0], rely=.15, relwidth=thirdsSep[-1] - thirdsSep[0], relheight=0.85)
+            self.basicf2.place(relx=0, rely=0, relwidth=1, relheight=1)
+            self.basicMergeEntry.configure(state='normal')
+            self.basicMergeEntry.insert(tk.END, "CSV ID")
+            self.basicMergeEntry.configure(state='disabled')
+            self.basicMergeEntry.bind("<Button-1>", self.clear_basic_csvidprompt)
+            self.basicMergeEntry.place(relx=0.5+offset, rely=0.55)
+            self.basicMerge.place(relx=offset, rely=0.55)
+            self.csv1.pack()
+            self.csv1.place(relx=0.0, rely=.15)
+
+            self.optFloat.place(relx=thirdsSep[0], rely = rowDepth[2], relwidth=1 - 2 * thirdsSep[0], relheight=rowDepth[3] - rowDepth[2])
+            self.optFloat.configure(bg=smallColor)
+            self.basicShapefileColText.configure(fg=clearColor, bg=smallColor)
+            self.basicShapefileColText.place(relx=offset, rely=.25)
+            self.basicShapefileCols.place(relx=0.5+offset, rely=.25)
 
         # 4
         self.num4.place(relx=0, rely=rowDepth[3], relwidth=1, relheight=rowDepth[4] - rowDepth[3])
-        self.num4_3.place(relx=thirdsSep[4], rely=0, relwidth=thirdsLen, relheight=1)
+        self.num4_3.place(relx=1 - 1.5 * thirdsLen, rely=0, relwidth=1.5 * thirdsLen, relheight=1)
         self.b.place(relx=.5, rely=0)
 
 def demo():
     root = tk.Tk()
-    root.title("ttk.Notebook")
+    root.title("Preprocessing Data!")
     root.geometry("x".join([str(x) for x in windowSize]))
 
     nb = ttk.Notebook(root)
@@ -401,8 +468,12 @@ def demo():
     page2 = ApplicationTab("Roundoff", nb)
     page2.show()
 
+    page3 = ApplicationTab("Merge & Report", nb)
+    page3.show()
+
     nb.add(page1, text='Prorate')
     nb.add(page2, text='Roundoff')
+    nb.add(page3, text='Merge & Report')
 
     nb.pack(expand=1, fill="both")
 
