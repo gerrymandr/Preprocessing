@@ -6,8 +6,13 @@ import geopandas as gp
 from tkinter import *
 import tkinter
 from tkinter import filedialog
+import matplotlib
+matplotlib.use("TkAgg")
+import matplotlib.pyplot as plt
 
-from prorationAndRoundoff import prorateWithDFs, roundoffWithDFs, getLookupTable, getOverlayBetweenBasicAndLargeBySmall
+from prorationAndRoundoff import prorateWithDFs, roundoffWithDFs, getOverlayBetweenBasicAndLargeBySmall
+from gen_report import prorate_report, roundoff_report
+#from gen_report import prorate_report, roundoff_report
 #from gen_report import prorate_and_roundoff_report, multifile_report
 
 windowSize = [800, 450]
@@ -330,6 +335,7 @@ b.place(relx=.5, rely=.75)
 top.mainloop()
 
 
+
 basicOutputFileName="basic"
 
 # now read files into geodataframes and join csvs if flagged
@@ -361,18 +367,23 @@ p,r=False,False
 
 if prorateVar.get():
     p=True
-    lookupTable = getOverlayBetweenBasicAndLargeBySmall(smallDF, basicDF, bigDF, small_geoid, population, basic_geoid, big_geoid, voting)
+    lookupTable = getOverlayBetweenBasicAndLargeBySmall(smallDF, basicDF, bigDF, small_geoid, population, basic_geoid, big_geoid)
     basicOutputFileName += "Prorated"
     reportOutputFileName=["Prorated"]
-    proratedValues = prorateWithDFs(bigDF, basicDF, smallDF, big_geoid, basic_geoid, small_geoid, population, voting, lookupTable)
+
+    proratedValues = prorateWithDFs(bigDF, basicDF, big_geoid, basic_geoid, voting, lookupTable, 'pop')
 
     for i, c in enumerate(voting):
         basicDF[c] = [proratedValues[x][i] for x in basicDF[basic_geoid]]
+    basicname = os.path.basename(basicUnits.split('.')[0])
+    bigname = os.path.basename(biggerUnits.split('.')[0])
+    prorate_report("Proration.html", [bigname, bigDF], [basicname, basicDF], smallDF, big_geoid, basic_geoid, small_geoid, population, voteColumns=voting)
 
 if roundoffVar.get():
     r=True
     if lookupTable is None:
         lookupTable = getOverlayBetweenBasicAndLargeBySmall(smallDF, basicDF, bigDF, small_geoid, basicIDCol=basic_geoid, bigIDCol=big_geoid, bigVoteColumn=[])
+
     basicOutputFileName += "Rounded"
     reportOutputFileName.append("Roundoff")
     roundedValues = roundoffWithDFs(
@@ -385,48 +396,6 @@ if roundoffVar.get():
             smallPopCol=population, 
             lookup=lookupTable)
     basicDF['CD'] = [roundedValues[x] for x in basicDF[basic_geoid]]
+    roundoff_report("Roundoff.html", bigDF, basicDF, big_geoid, basic_geoid)
 
-
-basicDF.to_file(basicOutputFileName+".shp")
-print("wrote to new shapefile: %s"%basicOutputFileName+".shp")
-
-
-
-"""
-# output data for report generation
-if reportVar.get():
-    if len(reportOutputFileName) < 1:
-        names = [x for x in [biggerUnits, basicUnits, smallestUnits] if x != '']
-        cleaned_names = [os.path.basename(x).split(".")[0] for x in names]
-
-        reportOutputFileName = "_and_".join(cleaned_names)+"_report.pdf"
-        input_list = []
-        if biggerUnits != '':
-            mydict={"filename":biggerUnits, "idcolumn":big_geoid}
-            if voting is not None:
-                mydict["votecolumns"] = voting
-            input_list.append(mydict)
-        if basicUnits != '':
-            input_list.append({"filename":basicUnits, "idcolumn":basic_geoid})
-        if smallestUnits != '':
-            mydict = {"filename":smallestUnits, "idcolumn":small_geoid}
-            if popcolumn is not None:
-                mydict["popcolumn"] = population
-            input_list.append(mydict)
-
-        multifile_report(reportOutputFileName, input_list)
-    
-    else:
-        reportOutputFileName = "_and_".join(reportOutputFileName)+"_report.pdf"
-        prorate_and_roundoff_report(
-                reportOutputFileName=reportOutputFileName,
-                biggerUnits=biggerUnits, bigDF=bigDF, big_geoid=big_geoid,
-                basicUnits=basicOutputFileName+".shp", basicDF=basicDF, basic_geoid=basic_geoid,
-                smallestUnits=smallestUnits, smallDF=smallDF, small_geoid=small_geoid,
-                population=population,
-                votes=voting,
-                prorated=p,
-                rounded=r,
-                lookupTable=lookupTable)
-"""
 

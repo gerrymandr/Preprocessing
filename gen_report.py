@@ -1,347 +1,300 @@
-import geopandas as gp
+import os
 import numpy as np
-import pandas as pd
 import pysal as ps
+import pandas as pd
+import geopandas as gp
 
 from math import pi
+import matplotlib.pyplot as plt
+
 from shapely.geometry.multipolygon import MultiPolygon
 
-from reportlab.lib import colors
-from reportlab.lib.pagesizes import letter
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image
-from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.lib.units import inch
-from reportlab.platypus import SimpleDocTemplate, Table, TableStyle
-roundTol = 3
-
-def ReportMaxMinAvgVarTotNumZero(Story, liststyles, column=None, dataframe=None, columname=None, variance=False, total=False, numZero=False):
-    styles = getSampleStyleSheet()
-    if (column is None) and (dataframe is not None):
-        column = np.array(dataframe[columname].tolist())
-    column = np.array(column)
-    values = {"max": max(column), "min": min(column),\
-            "avg": np.round(np.mean(column), roundTol), "var": np.round(np.var(column), roundTol) if variance else None,\
-            "total": sum(column) if total else None, "numZero": sum(column==0) if numZero else None}
-    Story.append(Paragraph(f"""Statistics on  {columname}:"""), style=styles['Normal'])
-
-    for key, val in values.items():
-        if val is not None:
-            Story.append(Paragraph(f"""{key}: {value}""", *liststyles ))
-     
-
-# Basic report on a given shapefile
-def generic_shapefile_report(
-            reportfilename="basic_report_file_",
-            dataframe = None,
-            filename = None,
-            idcolumn = None,
-            popcolumn = None,
-            votecolumns = None,
-            demographiccolumns = None,
-            printcolumns = True, 
-            Story=None
-        ):
-
-    styles = getSampleStyleSheet()
-    styleN = styles['Normal']
-    styleH1 = styles['Heading1']
-    styleH2 = styles['Heading2']
-    styleB = styles['Bullet']
-    if Story is None:
-        Story = []
-
-    if filename:
-        # 0 Get basic attributes of the datafile to be reported
-        if dataframe is None:
-            dataframe = gp.read_file(filename)
-        myfname = filename.split('/')[-1]
-        numUnits = len(dataframe)
-        numMultiUnits = sum([1 for x in dataframe["geometry"] if type(x) == MultiPolygon])
-        neighbors = ps.weights.Rook.from_dataframe(dataframe, geom_col="geometry").neighbors
-        numNbrs = np.array([float(len(x)) for x in neighbors.values()])
-        avgNbrs, maxNbrs, minNbrs = np.round(np.mean(numNbrs), roundTol), max(numNbrs), min(numNbrs)
-
-        numUnitsInsideUnits = sum([1 for x in neighbors.keys() if len(neighbors[x]) == 1])
-        numIslands = sum([1 for x in neighbors.keys() if len(neighbors[x]) == 0])
-        areas = np.round(np.array([float(x.area) for x in dataframe["geometry"]]), roundTol)
-        perims = np.round(np.array([float(x.length) for x in dataframe["geometry"]]), roundTol)
-        maxArea, minArea, avgArea = max(areas), min(areas), np.round(np.mean(areas), roundTol)
-        maxPerim, minPerim, avgPerim = max(perims), min(perims), np.round(np.mean(perims), roundTol)
-        polsbyPopper = np.round(4.0 * pi * areas / (perims**2), roundTol)
-        avgPolsPop, maxPolsPop, minPolsPop = np.round(np.mean(polsbyPopper), roundTol), max(polsbyPopper), min(polsbyPopper)
-
-        # 1 Title
-        Story.append(Paragraph(f"""<h1> Overview of {myfname} </h1>""", styleH1))
-        Story.append(Spacer(1,5))
-
-        # 2 Dataframe overview: 
-
-        # 2.0 column names
-        if printcolumns:
-            Story.append(Paragraph("""Column names: {}""".format(", ".join(dataframe.columns)), styleN))
-            Story.append(Spacer(1,5))
-
-        # 2.1 geometry
-        Story.append(Paragraph(f"""<h2> Geometry of units </h2>""", styleH2))
-        Story.append(Paragraph(f"""Number of units: {numUnits}""", styleN, bulletText='o'))
-        Story.append(Paragraph(f"""Number of disconnected units: {numIslands}""", styleN, bulletText='o'))
-        Story.append(Paragraph(f"""Number of multiply connected or island-containing units: {numMultiUnits}""", styleN, bulletText='o'))
-        Story.append(Paragraph(f"""Number of units contained completely inside another: {numUnitsInsideUnits}""", styleN, bulletText='o'))
-        Story.append(Paragraph(f"""Average number of neighbors: {avgNbrs}""", styleN, bulletText='o'))
-        Story.append(Paragraph(f"""Highest degree of connectivity: {maxNbrs}""", styleN, bulletText='o'))
-        Story.append(Paragraph(f"""Average, maximum, and minimum Polsby-Popper scores: {avgPolsPop}, {maxPolsPop}, {minPolsPop}""", styleN, bulletText='o'))
-        Story.append(Paragraph(f"""Average area of units: {avgArea}, Average Perimeter of units: {avgPerim}""", styleN, bulletText='o'))
-        Story.append(Paragraph(f"""Maximum & Minimum area of units: {maxArea}, {minArea}""", styleN, bulletText='o'))
-        Story.append(Paragraph(f"""Maximum & Minimum Perimeter of units: {maxPerim}, {minPerim}""", styleN, bulletText='o'))
-        Story.append(Spacer(1,12))
-
-        # 2.2 particular columns
-        if idcolumn or popcolumn or (votecolumns is not None) or (demographiccolumns is not None):
-            Story.append(Paragraph(f"""<h2> Column data </h2>""", styleH2))
-            if idcolumn:
-                numUniqueIds = len(set(dataframe[idcolumn].tolist()))
-                Story.append(Paragraph(f"""ID column: {idcolumn} has {numUniqueIds} unique elements. """, styleN))
-                if numUniqueIds != numUnits:
-                    Story.append(Paragraph("""<h2> Warning: ID column not unique! At least 2 units have the same ID </h2>""", styleH2))
-            if popcolumn:
-                pops = np.array(dataframe[popcolumn].tolist())
-                totPops = sum(pops)
-                maxPops, minPops, avgPops, numZero = max(pops), min(pops), np.round(np.mean(pops), roundTol), sum(pops == 0)
-                Story.append(Paragraph(f"""Total population reprted: {totPops}""", styleN))
-                Story.append(Paragraph(f"""Maximum population by unit: {maxPops}""", styleN, bulletText='o'))
-                Story.append(Paragraph(f"""Minimum population by unit: {minPops}""", styleN, bulletText='o'))
-                Story.append(Paragraph(f"""Average population per unit: {avgPops}""", styleN, bulletText='o'))
-                Story.append(Paragraph(f"""Number of units with 0 population:  {numZero}""", styleN, bulletText='o'))
-                Story.append(Spacer(1,5))
-
-            if votecolumns is not None:
-                vcols = ", ".join(votecolumns)
-                ncols = len(votecolumns)
-                Story.append(Spacer(1,5)) 
-                Story.append(Paragraph("""<h2> Election Data </h2>""", styleH2))
-                Story.append(Paragraph(f"""Reported values in columns: {vcols}""", styleN))
-                Story.append(Spacer(1,5)) 
-                vdata = [["column name", "Max", "Min", "Average", "Variance"]]
-                for col in votecolumns:
-                    votes = np.array(dataframe[col].tolist())
-                    maxv, minv, avgv, varv = max(votes), min(votes), np.mean(votes), np.var(votes)
-                    vdata.append(
-                            [col, np.round(maxv, roundTol),
-                            np.round(minv, roundTol), np.round(avgv, roundTol),
-                            np.round(varv, roundTol)])
-                t=Table(vdata, 5*[inch], (ncols+1)*[0.4*inch])
-                t.setStyle(TableStyle([
-                ('ALIGN',(1,1),(-2,-2),'CENTER'),
-                ('TEXTCOLOR',(0,0),(0,-1),colors.blue),
-                ('TEXTCOLOR',(0,0),(-1,0),colors.blue),
-                ('ALIGN',(0,-1),(-1,-1),'CENTER'),
-                ('VALIGN',(0,-1),(-1,-1),'MIDDLE'),
-                ('INNERGRID', (0,0), (4,ncols), 0.25, colors.black),
-                ('BOX', (0,0), (-1,-1), 0.25, colors.black)
-                ]))
-                Story.append(t)
-                Story.append(Spacer(1,5))
-
-            if demographiccolumns is not None:
-                dcols = ", ".join(demographiccolumns)
-                ncols = len(demographiccolumns)
-                Story.append(Spacer(1,5))
-                Story.append(Paragraph("""<h2> Demographic Data </h2>""", styleH2))
-                Story.append(Paragraph(f"""Reported values in columns: {dcols}""", styleN))
-                Story.append(Spacer(1,5))
-                ddata = [["column name", "Max", "Min", "Average", "Variance"]]
-                for col in demographiccolumns:
-                    votes = np.array(dataframe[col].tolist())
-                    maxv, minv, avgv, varv = max(votes), min(votes), np.mean(votes), np.var(votes)
-                    ddata.append(
-                            [col, np.round(maxv, roundTol),
-                            np.round(minv, roundTol), np.round(avgv, roundTol),
-                            np.round(varv, roundTol)])
-                t=Table(ddata, 5*[inch], (ncols+1)*[0.4*inch])
-                t.setStyle(TableStyle([
-                ('ALIGN',(1,1),(-2,-2),'CENTER'),
-                ('TEXTCOLOR',(0,0),(0,-1),colors.blue),
-                ('TEXTCOLOR',(0,0),(-1,0),colors.blue),
-                ('ALIGN',(0,-1),(-1,-1),'CENTER'),
-                ('VALIGN',(0,-1),(-1,-1),'MIDDLE'),
-                ('INNERGRID', (0,0), (4,ncols), 0.25, colors.black),
-                ('BOX', (0,0), (-1,-1), 0.25, colors.black)
-                ]))
-                Story.append(t)
-                Story.append(Spacer(1,5))
-
-        Story.append(Spacer(1,12))
-
-        # write report to file
-        if reportfilename is not None:
-            if reportfilename == "basic_report_file_":
-                reportfilename += myfname+".pdf"
-            doc = SimpleDocTemplate(reportfilename, pagesize=letter) 
+roundTol=3
 
 
-# PRORATION AND ROUNDOFF REPORT
-def prorate_and_roundoff_report(
-        reportOutputFileName="ProrateAndRoundoff.pdf",
-        biggerUnits=None,
+def write_header_styles(fstream):
+    fstream.write("\n<style>\n")
+    fstream.write("table { font-family: arial, sans-serif; border-collapse: collapse; width: 100%; }\n")
+    fstream.write("td, th { border: 1px solid #dddddd; text-align: left; padding: 8px; }\n")
+    fstream.write("tr:nth-child(even) { background-color: #dddddd; }\n")
+    fstream.write("mycolor {#ff0000}\n")
+    fstream.write("</style>\n\n")
+
+
+def generic_shapefile_report(outputName, dataFrame=None, shapefileName=None, idColumn=None, voteColumns=None, electionDicts=None):
+    if dataFrame is not None:
+        outputName = outputName.split('.')[0] + '.html'
+
+        with open(outputName, "w") as f:
+            f.write("<html>\n")
+            write_header_styles(f)
+
+            f.write("<body>\n")
+            f.write(f"<h1 width:100%> Report on {dataFrame[0]}</h1>\n")
+
+            numUnits = len(dataFrame[1])
+            numMultiUnits = sum([1 for x in dataFrame[1]["geometry"] if type(x) == MultiPolygon])
+            neighbors = ps.weights.Rook.from_dataframe(dataFrame[1], geom_col="geometry").neighbors
+            numNbrs = np.array([float(len(x)) for x in neighbors.values()])
+            avgNbrs, maxNbrs, minNbrs = np.round(np.mean(numNbrs), roundTol), max(numNbrs), min(numNbrs)
+
+            numUnitsInsideUnits = sum([1 for x in neighbors.keys() if len(neighbors[x]) == 1])
+            numIslands = sum([1 for x in neighbors.keys() if len(neighbors[x]) == 0])
+            areas = np.round(np.array([float(x.area) for x in dataFrame[1]["geometry"]]), roundTol)
+            perims = np.round(np.array([float(x.length) for x in dataFrame[1]["geometry"]]), roundTol)
+            maxArea, minArea, avgArea = max(areas), min(areas), np.round(np.mean(areas), roundTol)
+            maxPerim, minPerim, avgPerim = max(perims), min(perims), np.round(np.mean(perims), roundTol)
+            polsbyPopper = np.round(4.0 * pi * areas / (perims**2), roundTol)
+            avgPolsPop, maxPolsPop, minPolsPop = np.round(np.mean(polsbyPopper), roundTol), max(polsbyPopper), min(polsbyPopper)
+
+            f.write(f"<h2 width:100%> Geometry: </h2>\n")
+            f.write("<ul>\n")
+            f.write(f"<li>{numUnits} units</li>\n")
+            f.write(f"<li>{numIslands} disconnected units</li>\n")
+            f.write(f"<li>{numMultiUnits} multiply connected or island-containing units</li>\n")
+            f.write(f"<li>{numUnitsInsideUnits} units completely contained inside another</li>\n")
+            f.write(f"<li>Average number of neighbors: {avgNbrs}</li>\n")
+            f.write(f"<li>Highest degree of connectivity: {maxNbrs}</li>\n")
+            f.write(f"<li>Average, maximum, and minimum Polsby-Popper scores: {avgPolsPop}, {maxPolsPop}, {minPolsPop}</li>\n")
+            f.write( "</ul>\n\n")
+
+            if electionDicts is not None:
+                f.write(f"<h2 width:100%> Elections Data:</h2>\n")
+                picsName = f"{outputName.split('.')[0]}_images/"
+                if not os.path.isdir(picsName):
+                    os.mkdir(picsName)
+
+                for election in electionDicts.keys():
+                    f.write("<p width=100%>\n")
+                    electionPlot1 = picsName + election + 'D' + '.png'
+                    electionPlot2 = picsName + election + 'R' + '.png'
+                    c1 = electionDicts[election]
+                    dataFrame[1].plot(column=c1['D'], cmap="Blues")
+                    plt.savefig(electionPlot1)
+                    dataFrame[1].plot(column=c1['R'], cmap="Reds")
+                    plt.savefig(electionPlot2)
+
+                    f.write(f"<h3 width=100%> {election}</h3>\n")
+                    f.write(f"    <p width=100%>\nDemocrat totals: {dataFrame[1][electionDicts[election]['D']].sum()}, ")
+                    f.write(f"Republican Totals: {dataFrame[1][electionDicts[election]['R']].sum()}\n</p>\n")
+                    f.write( '    <div width=100%>\n')
+                    f.write(f"        <img src='{electionPlot1}' width=45%/>\n")
+                    f.write(f"        <img src='{electionPlot2}' width=45%/>\n")
+                    f.write( '    </div>\n')
+                    f.write( "</p>\n")
+
+                    f.write("<br>\n")
+
+            if voteColumns is not None:
+                f.write(f"<h2 width:100%>Vote Data:</h2>\n")
+
+                f.write(f"<p>\n<table>\n<tr><th>Column Name</th><th>Total Count</th><th>Max</th><th>Min</th><th>Average</th></tr>\n")
+                for column in voteColumns:
+                    maxCol=max(dataFrame[1][column])
+                    minCol=min(dataFrame[1][column])
+                    avgCol=np.mean(dataFrame[1][column].tolist())
+                    f.write("<tr>\n")
+                    f.write(f"<td>{column}</td>\n")
+                    f.write(f"<td>{dataFrame[1][column].sum()}</td>\n")
+                    f.write(f"<td>{maxCol}</td>\n")
+                    f.write(f"<td>{minCol}</td>\n")
+                    f.write(f"<td>{avgCol}</td>\n")
+                    f.write("</tr>\n")
+                f.write("</table>\n</p>\n")
+                f.write("<br>\n")
+
+            f.write("</body>\n")
+            f.write("</html>\n")
+
+    elif shapefileName is not None:
+        sname = os.path.basename(shapefile.split('.shp')[0])
+        dataFrame = [sname, gp.read_file(shapefileName)]
+        generic_shapefile_report(outputName, dataFrame, idColumn=idColumn, voteColumns=voteColumns, electionDicts=electionDicts)
+
+
+
+def prorate_report(
+        reportOutputFileName="ProrateReport.html",
         bigDF=None,
-        basicUnits=None,
         basicDF=None,
-        smallestUnits=None,
         smallDF=None,
         big_geoid=None,
         basic_geoid=None,
         small_geoid=None,
         population=None,
-        votes=None,
-        prorated=False,
-        rounded=False,
-        lookupTable=None):
+        voteColumns=None,
+        electionDicts=None):
 
-    # Process the 3 datafiles and their differences in geometry
-    popcol = population != ''
-    if biggerUnits:
-        bigdf = biggerUnits.split('/')[-1]
-    if basicUnits:
-        basicdf = basicUnits.split('/')[-1]
-    if bigDF is None:
-        bigDF = gp.read_file(biggerUnits)
-    if basicDF is None:
-        basicDF = gp.read_file(basicUnits)
+        with open(reportOutputFileName, "w") as f:
+            f.write("<html>\n")
+            write_header_styles(f)
 
-    smalldf = ''
-    if smallestUnits:
-        smalldf = smallestUnits.split('/')[-1]
-        if smallDF is None:
-            smallDF = gp.read_file(smallestUnits)
-    pop = population
-    nbasic = len(basicDF)
-    nbig = len(bigDF)
+            bigAvgArea = np.mean([x.area for x in bigDF[1]['geometry']])
+            bigAvgPOP = np.mean([x.area/ (x.length**2) for x in bigDF[1]['geometry']])
+            basicAvgArea = np.mean([x.area for x in basicDF[1]['geometry']])
+            basicAvgPOP = np.mean([x.area/ (x.length**2) for x in basicDF[1]['geometry']])
 
-    # get all of the units in basicDF that have multiple bigDF entries 
-    # that correspond to it(i.e. the ones that are split by bigDF units)
-    splitbasicunits = [x for x in basicDF[basic_geoid] if len(lookupTable.loc[lookupTable["basicUnits"]== x, :]) > 1]
+            f.write( "<body>\n")
+            f.write(f"<h1 width:100%> Proration:</h1>\n")
+            f.write(f"<p>{bigDF[0]} written in {basicDF[0]} Units</p>\n")
+            f.write( '<div width=100%>\n')
+            f.write( '   <div width=45%>\n')
+            f.write(f"      {bigDF[0]}:\n")
+            f.write( "      <ul>\n")
+            f.write(f"          <li> {len(bigDF[0])} geographic units</li>\n")
+            f.write(f"          <li> {bigAvgArea} average area per unit</li>\n")
+            f.write(f"          <li> {bigAvgPOP} average Polsby-Popper per unit</li>\n")
+            f.write( "      </ul>\n")
+            f.write( "   </div>\n")
+            f.write( '   <div width=45%>\n')
+            f.write(f"    {basicDF[0]}:\n")
+            f.write(f"    <li> {len(basicDF[0])} geographic units</li>\n")
+            f.write(f"    <li> {basicAvgArea} average area per unit</li>\n")
+            f.write(f"    <li> {basicAvgPOP} average Polsby-Popper per unit</li>\n")
+            f.write( "  </div>\n")
+            f.write("</div>\n")
 
-    # get the average number of pieces each of the split basicUnits is in
-    avgNumOfSplits = len(lookupTable.loc[lookupTable["basicUnits"].isin(splitbasicunits), "bigUnits"]) * 1.0 / len(splitbasicunits)
+            if electionDicts is not None:
+                f.write(f"<h2 width:100%> Elections Data:</h2>\n")
+                picsName = f"{outputName.split('.')[0]}_images/"
+                if not os.path.isdir(picsName):
+                    os.mkdir(picsName)
 
-    # get area of each piece 
-    splitOnes = lookupTable.loc[lookupTable['basicUnits'].isin(splitbasicunits), ["area", "basicUnits"]]
-    basicsplit = splitOnes["basicUnits"].tolist()
+                f.write(f"<table>\n<tr><th></th><th>{dataDFName}</th><th>{chainDFName}</th></tr>\n")
+                for election in electionDicts.keys():
+                    f.write(f"<h3 width=100%> {election}</h3>\n")
+                    f.write("<tr>")
+                    f.write(f"<td> Republican Totals </td>\n")
+                    f.write("<td>" + str(bigDF[1][electionDicts[election]['R']].sum()) + "</td>\n")
+                    f.write("<td>" + str(basicDF[1][electionDicts[election]['R']].sum()) + "</td>\n")
+                    f.write("</tr>\n")
+                    f.write("<tr>\n")
+                    f.write(f"<td> Democrat Totals </td>")
+                    f.write("<td>" + str(bigDF[1][electionDicts[election]['D']].sum()) + "</td>\n")
+                    f.write("<td>" + str(basicDF[1][electionDicts[election]['D']].sum()) + "</td>\n")
+                    f.write("</tr>\n")
+                f.write("</table>\n")
 
-    intersectArea = np.array(splitOnes['area'].tolist())
-    basicsplitsize = [basicDF.loc[basicDF[basic_geoid] == x, "geometry"] for x in basicsplit]
-    areas = [float(x.area) for x in basicsplitsize]
+                for election in electionDicts.keys():
+                    electionPlot1 =  picsName + election + 'D' + '.png'
+                    electionPlot2 =  picsName + election + 'R' + '.png'
+                    delectionPlot1 = picsName + 'orig_' + election + 'D' + '.png'
+                    delectionPlot2 = picsName + 'orig_' + election + 'R' + '.png'
 
-    basicSplitProportion = np.max(abs(intersectArea / areas))
-    bigsplitsize=1# = np.max(abs(intersectArea / areas - 0.5))
+                    basicDF[1].plot(column=electionDicts[election]['D'], cmap='Blues')
+                    plt.title(f"prorated to {basicDFName}")
+                    plt.savefig(electionPlot1)
+                    plt.clf()
+                    bigDF[1].plot(column=electionDicts[election]['D'], cmap='Blues')
+                    plt.title(f"original data source: {bigDFName}")
+                    plt.savefig(delectionPlot1)
+                    plt.clf()
+                    basicDF[1].plot(column=electionDicts[election]['R'], cmap='Reds')
+                    plt.title(f"prorated to {basicDFName}")
+                    plt.savefig(electionPlot2)
+                    plt.clf()
+                    bigDF[1].plot(column=electionDicts[election]['R'], cmap='Reds')
+                    plt.title(f"original data source: {bigDFName}")
+                    plt.savefig(delectionPlot2)
+                    plt.clf()
 
-    nbasicsplit = len(set(basicsplit))
-    bvotes = None
+                    f.write(f"<h1 width:100%>{election} Election:</h1>\n")
+                    f.write('<div width=100%>\n')
+                    f.write(f"   <img src='{delectionPlot1}' width=45%/>\n")
+                    f.write(f"   <img src='{electionPlot1}'  width=45%/>\n")
+                    f.write( '</div>\n')
+                    f.write('<div width=100%>\n')
+                    f.write(f"   <img src='{delectionPlot2}' width=45%/>\n")
+                    f.write(f"   <img src='{electionPlot2}'  width=45%/>\n")
+                    f.write('</div>\n')
 
-    doc = SimpleDocTemplate(reportOutputFileName, pagesize=letter) 
-    styles = getSampleStyleSheet()
-    styleN = styles['Normal']
-    styleH1 = styles['Heading1']
-    styleH2 = styles['Heading2']
-    styleB = styles['Bullet']
-    Story=[]
+            if voteColumns is not None:
+                f.write(f"<h2 width=100%> Voting Data:</h2>\n")
+                """
+                picsName = f"{outputName.split('.')[0]}_images/"
+                if not os.path.isdir(picsName):
+                    os.mkdir(picsName)
+                """
+                f.write(f"<h3 width=100%> Original counts</h3>\n")
+                f.write(f"<p>\n<table>\n<tr><th>Column Name</th><th>Total Count</th><th>Max</th><th>Min</th><th>Average</th></tr>\n")
+                for column in voteColumns:
+                    maxCol=max(bigDF[1][column])
+                    minCol=min(bigDF[1][column])
+                    avgCol=np.mean(basicDF[1][column].tolist())
+                    f.write("<tr>\n")
+                    f.write(f"<td>{column}</td>\n")
+                    f.write(f"<td>{bigDF[1][column].sum()}</td>\n")
+                    f.write(f"<td>{maxCol}</td>\n")
+                    f.write(f"<td>{minCol}</td>\n")
+                    f.write(f"<td>{avgCol}</td>\n")
+                    f.write("</tr>\n")
+                f.write("</table>\n</p>\n")
 
-    if prorated:
-        Story.append(Paragraph(f"""<h1>Proration: {bigdf} to {basicdf}</h1>""", styleH1))
-        Story.append(Spacer(1,5))
-        Story.append(Paragraph("""<h2> Assignment type: </h2>""", styleH2))
-        if popcol:
-            Story.append(Paragraph("the assignment was done in terms of the "+str(pop)+" column in "+str(smalldf), styleN))
-        else:
-            Story.append(Paragraph("since no smaller geographic units were specified, the assignment was done based on area", styleN))
-        Story.append(Spacer(1,12))
-        Story.append(Paragraph(f"""<h2> File: {basicdf} </h2>""", styleH2))
-        Story.append(Paragraph(f"""total number of {basicdf} units: {nbasic}""", styleN))
-        Story.append(Paragraph(f"""<h2> File: {bigdf} </h2>""", styleH2))
-        Story.append(Paragraph(f"""total number of {bigdf} units: {nbig}""", styleN))
-
-        Story.append(Spacer(1,12))
-        Story.append(Paragraph(f"""<h2> Distance between {basicdf} and {bigdf} </h2>""", styleH2))
-        ptext = f"""number of {basicdf} units split by assignment: {nbasicsplit}""" 
-        Story.append(Paragraph(ptext, styleN, bulletText='o'))
-        Story.append(Spacer(1,5))
-        ptext = f"""average proportional size of split for {basicdf} units: {basicSplitProportion}"""
-        Story.append(Paragraph(ptext, styleN, bulletText='o'))
-        Story.append(Spacer(1,5))
-        ptext = f"""average proportional size of split for {bigdf} units: {bigsplitsize}"""
-        Story.append(Paragraph(ptext, styleN, bulletText='o'))
-        bvotes = votes
-        Story.append(Spacer(1,20))
-
-    if rounded:
-        Story.append(Paragraph(f""" <h1> Roundoff: {bigdf} to {basicdf} </h1> """, styleH1))
-        Story.append(Spacer(1,5))
-        Story.append(Paragraph("""<h2> Assignment type: </h2> """, styleH2))
-        if popcol:
-            Story.append(Paragraph("the assignment was done in terms of the "+str(pop)+" column in "+str(smalldf), styleN))
-        else:
-            Story.append(Paragraph("since no smaller geographic units were specified, the assignment was done based on area", styleN))
-        Story.append(Spacer(1,12))
-        Story.append(Paragraph(f"""<h2> File: {basicdf} </h2>""", styleH2))
-        Story.append(Paragraph(f"""total number of {basicdf} units: {nbasic}""", styleN))
-        Story.append(Paragraph(f"""<h2> File: {bigdf} </h2>""", styleH2))
-        Story.append(Paragraph(f"""total number of {bigdf} units: {nbig}""", styleN))
-
-        Story.append(Spacer(1,12))
-        Story.append(Paragraph(f"""<h2> Distance between {basicdf} and {bigdf} </h2>""", styleH2))
-        ptext = f"""number of {basicdf} units split by assignment: {nbasicsplit}""" 
-        Story.append(Paragraph(ptext, styleN, bulletText='o'))
-        Story.append(Spacer(1,5))
-        ptext = f"""average proportional size of split for {basicdf} units: {basicSplitProportion}"""
-        Story.append(Paragraph(ptext, styleN, bulletText='o'))
-        Story.append(Spacer(1,5))
-        ptext = f"""average proportional size of split for {bigdf} units: {bigsplitsize}"""
-        Story.append(Paragraph(ptext, styleN, bulletText='o'))
-        Story.append(Spacer(1,20))
-
-
-    multifile_report(Story=Story, 
-            list_of_inputs=[
-                {"filename":basicdf, "dataframe":basicDF, "idcolumn":basic_geoid, "votecolumns":bvotes, "printcolumns":True}, 
-                {"filename":bigdf, "dataframe":bigDF, "idcolumn":big_geoid, "votecolumns":votes, "printcolumns":True}, 
-                {"filename":smalldf, "dataframe":smallDF, "idcolumn":small_geoid, "popcolumn":population, "printcolumns":True}
-                ]
-            )
-    doc.build(Story)
-    print(f"""wrote report to file: {reportOutputFileName}""")
+                f.write(f"<h3 width=100%> Prorated counts</h3>\n")
+                f.write(f"<p>\n<table>\n<tr><th>Column Name</th><th>Total Count</th><th>Max</th><th>Min</th><th>Average</th></tr>\n")
+                for column in voteColumns:
+                    maxCol=max(basicDF[1][column])
+                    minCol=min(basicDF[1][column])
+                    avgCol=np.mean(basicDF[1][column].tolist())
+                    f.write("<tr>\n")
+                    f.write(f"<td>{column}</td>\n")
+                    f.write(f"<td>{basicDF[1][column].sum()}</td>\n")
+                    f.write(f"<td>{maxCol}</td>\n")
+                    f.write(f"<td>{minCol}</td>\n")
+                    f.write(f"<td>{avgCol}</td>\n")
+                    f.write("</tr>\n")
+                f.write("</table>\n</p>\n")
+                f.write("<br>\n")
 
 
-def multifile_report(reportOutputFileName=None, list_of_inputs=[], Story=None):
-    """Creates a report on multiple shapefiles using the 
-    generic_shapefile_report function for each. 
 
-    :inputs: 
-    :reportOutputFileName: filename to write to 
-    :list_of_inputs: list of dicts each of which acts as **kwargs to generic_shapefile_report
-    :Story: if this function is being called from another report generator
-    """
+            f.write("</body>\n")
+            f.write("</html>\n")
 
-    styles = getSampleStyleSheet()
-    styleN = styles['Normal']
-    styleH1 = styles['Heading1']
-    styleH2 = styles['Heading2']
-    styleB = styles['Bullet']
 
-    if Story is None:
-        Story=[]
+def roundoff_report(
+        reportOutputFileName="RoundoffReport.html",
+        bigDF=None,
+        basicDF=None,
+        big_geoid=None,
+        basic_geoid=None):
 
-    Story.append(Paragraph("""<h1>Initial File Report On Multiple Files</h1>""", styleH1))
-    Story.append(Spacer(1,20))
+        with open(reportOutputFileName, "w") as f:
 
-    for inputs in list_of_inputs:
-        generic_shapefile_report(
-                Story=Story,
-                reportfilename=None,
-                **inputs) 
-        Story.append(Spacer(1,20))
+            picsName = f"{reportOutputFileName.split('.')[0]}_images/"
+            if not os.path.isdir(picsName):
+                os.mkdir(picsName)
 
-    if reportOutputFileName is not None:
-        doc = SimpleDocTemplate(reportOutputFileName, pagesize=letter) 
-        doc.build(Story)
-        print(f"""Wrote report to file {reportOutputFileName}""")
+            bigUnits = picsName+"bigV.png"
+            basicUnits = picsName+"basicV.png"
+            roundedUnits = picsName+"roundedV.png"
+
+            bigDF.plot(column=big_geoid)
+            plt.title("Before Rounding")
+            plt.savefig(bigUnits)
+
+            basicDF.plot(column=basic_geoid)
+            plt.title("Roundoff Units")
+            plt.savefig(basicUnits)
+
+            basicDF.plot(column='CD')
+            plt.title("After Rounding")
+            plt.savefig(roundedUnits)
+
+            f.write("<html>\n")
+            write_header_styles(f)
+            f.write("<body>\n")
+
+            f.write(f"<h3 width=100%> Roundoff Results</h3>\n")
+            f.write( "<p>\n")
+            f.write( '    <div width=100%>\n')
+            f.write(f"        <img src='{bigUnits}' width=30%/>\n")
+            f.write(f"        <img src='{basicUnits}' width=30%/>\n")
+            f.write(f"        <img src='{roundedUnits}' width=30%/>\n")
+            f.write( '    </div>\n')
+            f.write( "</p>\n")
+
+            f.write("</body>\n")
+            f.write("</html>\n")
+
 
