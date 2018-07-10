@@ -100,9 +100,7 @@ def callback(page):
 
     elif page.title == 'Roundoff':
         if lookupTable is None:
-            lookupTable = getOverlayBetweenBasicAndLargeBySmall(smallDF, basicDF, bigDF, small_geoid, basic_geoid, big_geoid)
-        basicOutputFileName += "Rounded"
-        reportOutputFileName.append("Roundoff")
+            lookupTable = getOverlayBetweenBasicAndLargeBySmall(smallDF, basicDF, bigDF, small_geoid, population, basic_geoid, big_geoid)
         roundedValues = roundoffWithDFs(
             basicDF=basicDF, 
             bigDF=bigDF, 
