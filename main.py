@@ -84,8 +84,8 @@ def callback(page):
     lookupTable = None
 
     if page.title == 'Prorate':
-        page.lookupTable = getOverlayBetweenBasicAndLargeBySmall(smallDF, basicDF, bigDF, small_geoid, population, basic_geoid, big_geoid)
-        proratedValues = prorateWithDFs(bigDF, basicDF, big_geoid, basic_geoid, voting, page.lookupTable, prorateCol='pop')
+        lookupTable = getOverlayBetweenBasicAndLargeBySmall(smallDF, basicDF, bigDF, small_geoid, population, basic_geoid, big_geoid)
+        proratedValues = prorateWithDFs(bigDF, basicDF, big_geoid, basic_geoid, voting, lookupTable, prorateCol='pop')
 
         for i, c in enumerate(voting):
             basicDF[c] = [proratedValues[x][i] for x in basicDF[basic_geoid]]
