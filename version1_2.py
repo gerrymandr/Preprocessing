@@ -99,7 +99,7 @@ def callback(page):
         print("\nReport written to file: Proration.html\n")
 
     elif page.title == 'Roundoff':
-        if page.lookupTable is None:
+        if lookupTable is None:
             lookupTable = getOverlayBetweenBasicAndLargeBySmall(smallDF, basicDF, bigDF, small_geoid, basic_geoid, big_geoid)
         basicOutputFileName += "Rounded"
         reportOutputFileName.append("Roundoff")
