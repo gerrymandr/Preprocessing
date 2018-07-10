@@ -117,7 +117,7 @@ def callback(page):
             basicDF=basicDF, 
             bigDF=bigDF, 
             smallDF=smallDF, 
-            basicID=basic_geoid, 
+            basicID=basic_geoid,
             bigID=big_geoid, 
             smallID=small_geoid, 
             smallPopCol=population, 
@@ -314,7 +314,7 @@ class ApplicationTab(ttk.Frame):
         #self.processLabel = tk.Label(self.num4_3, text="ANALYSIS", anchor=tk.W, font="Helvetica 14", bg=columnNamesColor)
 
         self.basicShapefileCols = tk.Entry(self.optFloat, width=30)
-        self.basicShapefileColText = tk.Label(self.optFloat, text="(Optional) vote columns to report report on: ")
+        self.basicShapefileColText = tk.Label(self.optFloat, text="(Optional) vote columns to report on: ")
 
         # Creates the button to process and pass all variables
         self.b = tk.Button(self.num4_3, text=self.title + '!', width=15, command=partial(callback, self))
@@ -342,7 +342,7 @@ class ApplicationTab(ttk.Frame):
             self.num2_2.place(relx=thirdsSep[0], rely=.15, relwidth=thirdsLen, relheight=0.85)
             self.basicf1.place(relx=0, rely=0, relwidth=1, relheight=1)
             self.basicLabel.place(relx=0, rely=0)
-            self.geoid1.insert(tk.END, "ID Column")
+            self.geoid1.insert(tk.END, "Column Name")
             self.geoid1.bind("<Button-1>", self.clear_basic_idprompt)
             self.geoid1.place(relx=0.5+offset, rely=0.33)
             self.basic.place(relx=offset, rely=0.33)
@@ -355,11 +355,11 @@ class ApplicationTab(ttk.Frame):
             elif self.title == "Roundoff":
                 self.bigLabel.configure(text="congressional districts to round")
             self.bigLabel.place(relx=0, rely=0)
-            self.geoid2.insert(tk.END, "ID Column")
+            self.geoid2.insert(tk.END, "Column Name")
             self.geoid2.bind("<Button-1>", self.clear_big_idprompt)
             self.geoid2.place(relx=0.5+offset, rely=0.33)
             if self.title == "Prorate":
-                self.voteEntry.insert(tk.END, "Vote columns to prorate")
+                self.voteEntry.insert(tk.END, "Names of columns to prorate")
                 self.voteEntry.bind("<Button-1>", self.clear_vote_column)
                 self.voteEntry.place(relx=offset, rely=.66)
             self.big.place(relx=offset, rely=0.33)
@@ -368,7 +368,7 @@ class ApplicationTab(ttk.Frame):
             self.num2_4.place(relx=thirdsSep[4], rely=.15, relwidth=thirdsLen, relheight=0.85)
             self.smallf1.place(relx=0, rely=0, relwidth=1, relheight=1)
             self.smallLabel.place(relx=0, rely=0)
-            self.geoid3.insert(tk.END, "ID Column")
+            self.geoid3.insert(tk.END, "Column Name")
             self.geoid3.bind("<Button-1>", self.clear_small_idprompt)
             self.geoid3.place(relx=0.5+offset, rely=0.33)
             self.popEntry.insert(tk.END, "Population column Name")
@@ -423,7 +423,7 @@ class ApplicationTab(ttk.Frame):
             self.num2_2.place(relx=thirdsSep[0], rely=.15, relwidth=1 - 2 * thirdsSep[0], relheight=0.85)
             self.basicf1.place(relx=0, rely=0, relwidth=1, relheight=1)
             self.basicLabel.place(relx=0, rely=0)
-            self.geoid1.insert(tk.END, "ID Column")
+            self.geoid1.insert(tk.END, "Column Name")
             self.geoid1.bind("<Button-1>", self.clear_basic_idprompt)
             self.geoid1.place(relx=0.5+offset, rely=0.33)
             self.basic.place(relx=offset, rely=0.33)
