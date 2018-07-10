@@ -5,6 +5,8 @@ import pandas as pd
 import geopandas as gp
 
 from math import pi
+import matplotlib
+matplotlib.use("TkAgg")
 import matplotlib.pyplot as plt
 
 from shapely.geometry.multipolygon import MultiPolygon

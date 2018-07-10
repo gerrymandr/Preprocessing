@@ -10,30 +10,10 @@ from tkinter import ttk
 from tkinter import filedialog
 from tkinter.scrolledtext import ScrolledText
 
-from prorationAndRoundoff import prorateWithDFs, roundoffWithDFs, getLookupTable, getOverlayBetweenBasicAndLargeBySmall
-from gen_report import prorate_and_roundoff_report, multifile_report
+from prorationAndRoundoff import prorateWithDFs, roundoffWithDFs, getOverlayBetweenBasicAndLargeBySmall
+from gen_report import prorate_report, roundoff_report
 
 windowSize = [800, 425]
-
-'''
-biggerUnits = ''
-smallestUnits = ''
-basic_geoid = ''
-big_geoid = ''
-small_geoid = ''
-population = ''
-voting = ''
-cond_dist = ''
-merge_basic_flag = False
-merge_big_flag = False
-merge_small_flag = False
-basicMergePath = ''
-biggestMergePath = ''
-smallestMergePath = ''
-merge_basic_col = ''
-merge_biggest_col = ''
-merge_smallest_col = ''
-'''
 
 num_cols=3
 num_rows=4
@@ -99,8 +79,6 @@ def callback(page):
     # Historically, this is where top was destroyed.
     # top.destroy()
 
-    basicOutputFileName="basic"
-
     # now read files into geodataframes and join csvs if flagged
     if page.basicUnits != '':
         basicDF = gp.read_file(page.basicUnits)
@@ -125,74 +103,43 @@ def callback(page):
         smallDF = None
     lookupTable = None
 
-    reportOutputFileName=[]
-    
     if page.title == 'Prorate':
-        p=True
-        page.lookupTable = getOverlayBetweenBasicAndLargeBySmall(smallDF, basicDF, bigDF, small_geoid, population, basic_geoid, big_geoid, voting)
-        basicOutputFileName += "Prorated"
-        reportOutputFileName=["Prorated"]
-        proratedValues = prorateWithDFs(bigDF, basicDF, smallDF, big_geoid, basic_geoid, small_geoid, population, voting, lookupTable)
+        page.lookupTable = getOverlayBetweenBasicAndLargeBySmall(smallDF, basicDF, bigDF, small_geoid, population, basic_geoid, big_geoid)
+        proratedValues = prorateWithDFs(bigDF, basicDF, big_geoid, basic_geoid, voting, page.lookupTable, prorateCol='pop')
 
         for i, c in enumerate(voting):
             basicDF[c] = [proratedValues[x][i] for x in basicDF[basic_geoid]]
+
+        basicDF.to_file("Prorated.shp")
+        print("\nwrote to new shapefile: Prorated.shp\n")
+
+        basicname = os.path.basename(page.basicUnits.split('.')[0])
+        bigname = os.path.basename(page.biggerUnits.split('.')[0])
+        prorate_report("Proration.html", [bigname, bigDF], [basicname, basicDF], smallDF, big_geoid, basic_geoid, small_geoid, population, voteColumns=voting)
+        print("\nReport written to file: Proration.html\n")
+
     elif page.title == 'Roundoff':
-        r=True
         if page.lookupTable is None:
-            lookupTable = getOverlayBetweenBasicAndLargeBySmall(smallDF, basicDF, bigDF, small_geoid, basic_geoid, big_geoid, voting)
+            lookupTable = getOverlayBetweenBasicAndLargeBySmall(smallDF, basicDF, bigDF, small_geoid, basic_geoid, big_geoid)
         basicOutputFileName += "Rounded"
         reportOutputFileName.append("Roundoff")
         roundedValues = roundoffWithDFs(
-                basicDF=basicDF, 
-                bigDF=bigDF, 
-                smallDF=smallDF, 
-                basicID=basic_geoid, 
-                bigID=big_geoid, 
-                smallID=small_geoid, 
-                smallPopCol=population, 
-                lookup=lookupTable)
+            basicDF=basicDF, 
+            bigDF=bigDF, 
+            smallDF=smallDF, 
+            basicID=basic_geoid, 
+            bigID=big_geoid, 
+            smallID=small_geoid, 
+            smallPopCol=population, 
+            lookup=lookupTable)
         basicDF['CD'] = [roundedValues[x] for x in basicDF[basic_geoid]]
+
+        basicDF.to_file("Rounded.shp")
+        print("\nwrote to new shapefile: Rounded.shp\n")
+
+        roundoff_report("Roundoff.html", bigDF, basicDF, big_geoid, basic_geoid)
     else:
         raise Exception("ERROR: Invalid page")
-
-
-    basicDF.to_file(basicOutputFileName+".shp")
-    print("wrote to new shapefile: %s"%basicOutputFileName+".shp")
-
-    # output data for report generation
-    if len(reportOutputFileName) < 1:
-        names = [x for x in [biggerUnits, basicUnits, smallestUnits] if x != '']
-        cleaned_names = [os.path.basename(x).split(".")[0] for x in names]
-
-        reportOutputFileName = "_and_".join(cleaned_names)+"_report.pdf"
-        input_list = []
-        if biggerUnits != '':
-            mydict={"filename":biggerUnits, "idcolumn":big_geoid}
-            if voting is not None:
-                mydict["votecolumns"] = voting
-            input_list.append(mydict)
-        if basicUnits != '':
-            input_list.append({"filename":basicUnits, "idcolumn":basic_geoid})
-        if smallestUnits != '':
-            mydict = {"filename":smallestUnits, "idcolumn":small_geoid}
-            if page.popcolumn is not None:
-                mydict["popcolumn"] = population
-            input_list.append(mydict)
-
-        multifile_report(reportOutputFileName, input_list)
-    
-    else:
-        reportOutputFileName = "_and_".join(reportOutputFileName)+"_report.pdf"
-        prorate_and_roundoff_report(
-                reportOutputFileName=reportOutputFileName,
-                biggerUnits=biggerUnits, bigDF=bigDF, big_geoid=big_geoid,
-                basicUnits=basicOutputFileName+".shp", basicDF=basicDF, basic_geoid=basic_geoid,
-                smallestUnits=smallestUnits, smallDF=smallDF, small_geoid=small_geoid,
-                population=population,
-                votes=voting,
-                prorated=(page.title == 'Prorate'),
-                rounded=(page.title == 'Roundoff'),
-                lookupTable=lookupTable)
 
 
 
@@ -255,9 +202,11 @@ class ApplicationTab(ttk.Frame):
     def clear_small_csvidprompt(self, event):
         self.smallMergeEntry.delete(0, tk.END)
 
-    def selectPath(self, selfUnitsPath):
+    def selectPath(self, selfUnitsPath, selfUnitsButton):
         setattr(self, selfUnitsPath, filedialog.askopenfilename())
-        print("File selected : " + getattr(self, selfUnitsPath))
+        selectedFile = getattr(self, selfUnitsPath)
+        getattr(self, selfUnitsButton).configure(text='...'+selectedFile[-10:])
+        print("File selected : " + selectedFile)
     
     def enable_basic_csv(self):
         if self.basicCheck.get():
@@ -311,7 +260,7 @@ class ApplicationTab(ttk.Frame):
         self.basicf1 = tk.Frame(self.num2_2, bg=basicColor)
         self.geoid1 = tk.Entry(self.basicf1, width=10)
         self.basic = tk.Button(self.basicf1, text="Browse",
-                     command=partial(self.selectPath, 'basicUnits'), height=1, width=10)
+                     command=partial(self.selectPath, 'basicUnits', "basic"), height=1, width=10)
 
         # 2.2 SELECT UNITS ROW (big)
         self.num2_3 = tk.Frame(self.num2)
@@ -319,7 +268,7 @@ class ApplicationTab(ttk.Frame):
         self.geoid2 = tk.Entry(self.bigf1, width=10)
         
         self.big = tk.Button(self.bigf1, text="Browse",
-                     command=partial(self.selectPath, 'biggerUnits'), width=10, height=1)
+                     command=partial(self.selectPath, 'biggerUnits', "big"), width=10, height=1)
         self.voteEntry = tk.Entry(self.num2_3, width=10)
 
         # 2.3 SELECT UNITS ROW (small)
@@ -328,7 +277,7 @@ class ApplicationTab(ttk.Frame):
         self.geoid3 = tk.Entry(self.smallf1, width=10)
 
         self.small = tk.Button(self.smallf1, text="Browse",
-                     command=partial(self.selectPath, 'smallestUnits'), width=10, height=1)
+                     command=partial(self.selectPath, 'smallestUnits', "small"), width=10, height=1)
         self.popEntry = tk.Entry(self.num2_4, width=10)
         
 
@@ -347,7 +296,7 @@ class ApplicationTab(ttk.Frame):
         
         self.basicCheck = tk.BooleanVar()
         self.csv1 = tk.Checkbutton(self.num3_2, text="add CSV data", variable=self.basicCheck,
-                onvalue=True, offvalue=False, height=1, width=14, bg=basicColor, 
+                onvalue=True, offvalue=False, height=1, width=14, bg=lBasicColor, 
                 command=self.enable_basic_csv)
 
         # 3.2 ADD CSV DATA (big)
@@ -361,7 +310,7 @@ class ApplicationTab(ttk.Frame):
 
         self.bigCheck = tk.BooleanVar()
         self.csv2 = tk.Checkbutton(self.num3_3, text="add CSV data", variable=self.bigCheck,
-                onvalue=True, offvalue=False, height=1, width=14, bg=bigColor, 
+                onvalue=True, offvalue=False, height=1, width=14, bg=lBigColor, 
                 command=self.enable_big_csv)
 
         # 3.3 ADD CSV DATA (small)
@@ -375,7 +324,7 @@ class ApplicationTab(ttk.Frame):
 
         self.smallCheck = tk.BooleanVar()
         self.csv3 = tk.Checkbutton(self.num3_4, text="add CSV data", variable=self.smallCheck,
-                onvalue=True, offvalue=False, height=1, width=14, bg=smallColor, 
+                onvalue=True, offvalue=False, height=1, width=14, bg=lSmallColor, 
                 command=self.enable_small_csv)
         
         # 4.0 PROCESS BUTTON
