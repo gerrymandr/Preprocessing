@@ -16,16 +16,20 @@ from gen_report import prorate_report, roundoff_report
 windowSize = [800, 425]
 
 num_cols=3
-num_rows=4
-offset = 0.03
+num_rows=3
+offset = 0.01
 inset_proportion=.1
 # Grid Layout
-rowDepth=[inset_proportion + x * (1.0 / num_rows + y * offset) for y in [1, 3] for x in range(num_rows)]
-colDepth=[inset_proportion + x * (1.0 / num_cols + y * offset) for y in [0, 2] for x in range(num_cols)]
-relColWidth = 1.0 / num_cols
-relRowHeight = 1.0 / num_rows
-thirdsSep = [4 / 72, 24 / 72, 26 / 72, 46 / 72, 48 / 72, 68 / 72]
-thirdsLen = 20 / 72
+rowDepth = [0.2, 0.5, .6, 0.9, 0.99]
+
+thirdsSep = [2 / 72,
+            24 / 72,
+            25 / 72, 
+            47 / 72, 
+            48 / 72, 
+            70 / 72]
+
+thirdsLen = 22 / 72
 
 clearColor = "white"
 basicColor = "#AED6F1"
@@ -203,51 +207,54 @@ class ApplicationTab(ttk.Frame):
 
         # 2.0 SELECT UNITS ROW (title)
         self.num2_1 = tk.Frame(self.num2)
-        self.selectLabel = tk.Label(self.num2_1, text="SELECT UNITS", anchor=tk.W, font="Helvetica 14")
+        self.selectLabel = tk.Label(self.num2_1, text="SELECT UNITS (shapefile format)", anchor=tk.W, font="Helvetica 14")
 
         # 2.1 SELECT UNITS ROW (basic)
         self.num2_2 = tk.Frame(self.num2)
         self.basicf1 = tk.Frame(self.num2_2, bg=basicColor)
+        self.basicLabel = tk.Label(self.num2_2, bg=basicColor, fg=clearColor, text="basic chain units")
         self.geoid1 = tk.Entry(self.basicf1, width=10)
         self.basic = tk.Button(self.basicf1, text="Browse",
-                     command=partial(self.selectPath, 'basicUnits', "basic"), height=1, width=10)
+                     command=partial(self.selectPath, 'basicUnits', "basic"), height=1, width=8)
 
         # 2.2 SELECT UNITS ROW (big)
         self.num2_3 = tk.Frame(self.num2)
         self.bigf1 = tk.Frame(self.num2_3, bg=bigColor)
+        self.bigLabel = tk.Label(self.num2_3, bg=bigColor, fg=clearColor, text="")
         self.geoid2 = tk.Entry(self.bigf1, width=10)
         
         self.big = tk.Button(self.bigf1, text="Browse",
-                     command=partial(self.selectPath, 'biggerUnits', "big"), width=10, height=1)
-        self.voteEntry = tk.Entry(self.num2_3, width=10)
+                     command=partial(self.selectPath, 'biggerUnits', "big"), width=8, height=1)
+        self.voteEntry = tk.Entry(self.num2_3, width=20)
 
         # 2.3 SELECT UNITS ROW (small)
         self.num2_4 = tk.Frame(self.num2)
         self.smallf1 = tk.Frame(self.num2_4, bg=smallColor)
+        self.smallLabel = tk.Label(self.num2_4, bg=smallColor, fg=clearColor, text="(optional)units that align with both")
         self.geoid3 = tk.Entry(self.smallf1, width=10)
 
         self.small = tk.Button(self.smallf1, text="Browse",
-                     command=partial(self.selectPath, 'smallestUnits', "small"), width=10, height=1)
-        self.popEntry = tk.Entry(self.num2_4, width=10)
+                     command=partial(self.selectPath, 'smallestUnits', "small"), width=8, height=1)
+        self.popEntry = tk.Entry(self.num2_4, width=20)
         
 
         # 3.0 ADD CSV DATA (title)
         self.num3_1 = tk.Frame(self.num3)
-        self.mergeLabel = tk.Label(self.num3_1, text="MERGE COLUMNS FROM .csv", anchor=tk.W, font="Helvetica 14")
+        self.mergeLabel = tk.Label(self.num3_1, text="MERGE COLUMNS FROM .csv (all columns of data will be added to shapefile)", anchor=tk.W, font="Helvetica 14")
 
         # 3.1 ADD CSV DATA (basic)
         self.num3_2 = tk.Frame(self.num3)
         self.basicf2 = tk.Frame(self.num3_2, bg=lBasicColor)
         self.basicMergeEntry = tk.Entry(self.basicf2, width=10)
         self.basicMerge = tk.Button(self.basicf2, text="Browse",
-                command=partial(self.selectPath, 'basicMergePath', 'basicMerge'), width=10, height=1)
-        self.basicMergeLabel = ttk.Label(self.basicf2, text=self.basicMergePath,font=("Helvtica", 10))
+                command=partial(self.selectPath, 'basicMergePath', 'basicMerge'), width=8, height=1)
+        self.basicMergeLabel = ttk.Label(self.basicf2, text=self.basicMergePath,font=("Helvtica", 8))
         self.basicMergeEntry.configure(state='disabled')
         self.basicMerge.configure(state='disabled')
         
         self.basicCheck = tk.BooleanVar()
         self.csv1 = tk.Checkbutton(self.num3_2, text="add CSV data", variable=self.basicCheck,
-                onvalue=True, offvalue=False, height=1, width=14, bg=lBasicColor, 
+                onvalue=True, offvalue=False, height=1, width=12, bg=lBasicColor, 
                 command=self.enable_basic_csv)
 
         # 3.2 ADD CSV DATA (big)
@@ -255,14 +262,14 @@ class ApplicationTab(ttk.Frame):
         self.bigf2 = tk.Frame(self.num3_3, bg=lBigColor)
         self.bigMergeEntry = tk.Entry(self.bigf2, width=10)
         self.bigMerge = tk.Button(self.bigf2, text="Browse",
-                command=partial(self.selectPath, 'biggestMergePath', 'bigMerge'), width=10, height=1)
-        self.bigMergeLabel = ttk.Label(root, text =self.biggestMergePath,font=("Helvetica", 10))
+                command=partial(self.selectPath, 'biggestMergePath', 'bigMerge'), width=8, height=1)
+        self.bigMergeLabel = ttk.Label(root, text =self.biggestMergePath,font=("Helvetica", 8))
         self.bigMergeEntry.configure(state='disabled')
         self.bigMerge.configure(state='disabled')
 
         self.bigCheck = tk.BooleanVar()
         self.csv2 = tk.Checkbutton(self.num3_3, text="add CSV data", variable=self.bigCheck,
-                onvalue=True, offvalue=False, height=1, width=14, bg=lBigColor, 
+                onvalue=True, offvalue=False, height=1, width=12, bg=lBigColor, 
                 command=self.enable_big_csv)
 
         # 3.3 ADD CSV DATA (small)
@@ -270,22 +277,22 @@ class ApplicationTab(ttk.Frame):
         self.smallf2 = tk.Frame(self.num3_4, bg=lSmallColor)
         self.smallMergeEntry = tk.Entry(self.smallf2, width=10)
         self.smallMerge = tk.Button(self.smallf2, text="Browse",
-                command=partial(self.selectPath, 'smallestMergePath', 'smallMerge'), width=10, height=1)
-        self.smallMergeLabel = ttk.Label(root, text =self.smallestMergePath,font=("Helvetica", 10))
+                command=partial(self.selectPath, 'smallestMergePath', 'smallMerge'), width=8, height=1)
+        self.smallMergeLabel = ttk.Label(root, text =self.smallestMergePath,font=("Helvetica", 8))
         self.smallMergeEntry.configure(state='disabled')
         self.smallMerge.configure(state='disabled')
 
         self.smallCheck = tk.BooleanVar()
         self.csv3 = tk.Checkbutton(self.num3_4, text="add CSV data", variable=self.smallCheck,
-                onvalue=True, offvalue=False, height=1, width=14, bg=lSmallColor, 
+                onvalue=True, offvalue=False, height=1, width=12, bg=lSmallColor, 
                 command=self.enable_small_csv)
         
         # 4.0 PROCESS BUTTON
-        self.num4_3 = tk.Frame(self.num4, bg=columnNamesColor)
-        self.processLabel = tk.Label(self.num4_3, text="ANALYSIS", anchor=tk.W, font="Helvetica 14", bg=columnNamesColor)
+        self.num4_3 = tk.Frame(self.num4, bg=clearColor)
+        #self.processLabel = tk.Label(self.num4_3, text="ANALYSIS", anchor=tk.W, font="Helvetica 14", bg=columnNamesColor)
         
         # Creates the button to process and pass all variables
-        self.b = tk.Button(self.num4_3, text="Process", width=10, command=partial(callback, self))
+        self.b = tk.Button(self.num4_3, text=self.title + '!', width=10, command=partial(callback, self))
         
     
     def show(self):
@@ -296,79 +303,92 @@ class ApplicationTab(ttk.Frame):
         #self.num3.pack(side='top', fill='both', expand=True)
         #self.num4.pack(side='top', fill='both', expand=True)
         # 1.0: TITLE ROW
-        self.num1.place(x=0, y=0, relwidth=1, relheight=1/(num_rows+1))
-        self.topLabel.place(relx=thirdsSep[0], y=0, relwidth=1)
+        self.num1.place(relx=0, rely=0, relwidth=1, relheight=rowDepth[0])
+        self.topLabel.place(relx=thirdsSep[0], rely=0, relwidth=1, relheight=1)
 
         # 2.1 SELECT UNITS ROW (basic)
-        self.num2.place(relx=0, rely=rowDepth[0]+offset, relwidth=1, relheight=1/(num_rows+1))
-        self.num2_1.place(relx=0, rely=0, relwidth=1, relheight=0.25)
-        self.selectLabel.place(relx=thirdsSep[0], rely=0, relwidth=1)
+        self.num2.place(relx=0, rely=rowDepth[0], relwidth=1, relheight=rowDepth[1] - rowDepth[0])
+        self.num2_1.place(relx=0, rely=0, relwidth=1, relheight=0.15)
+        self.selectLabel.place(relx=thirdsSep[0], rely=0, relwidth=1, relheight=1)
         
-        self.num2_2.place(relx=thirdsSep[0], rely=.25, relwidth=thirdsLen, relheight=0.75)
+        self.num2_2.place(relx=thirdsSep[0], rely=.15, relwidth=thirdsLen, relheight=0.85)
         self.basicf1.place(relx=0, rely=0, relwidth=1, relheight=1)
-        self.geoid1.insert(tk.END, "Chain Units ID")
+        self.basicLabel.place(relx=0, rely=0)
+        self.geoid1.insert(tk.END, "ID Column")
         self.geoid1.bind("<Button-1>", self.clear_basic_idprompt)
-        self.geoid1.place(relx=offset, rely=0.15)
-        self.basic.place(relx=0.5+offset, rely=0.15)
+        self.geoid1.place(relx=0.5+offset, rely=0.33)
+        self.basic.place(relx=offset, rely=0.33)
 
         # 2.2 SELECT UNITS ROW (big)
-        self.num2_3.place(relx=thirdsSep[2], rely=.25, relwidth=thirdsLen, relheight=0.75)
+        self.num2_3.place(relx=thirdsSep[2], rely=.15, relwidth=thirdsLen, relheight=0.85)
         self.bigf1.place(relx=0, rely=0, relwidth=1, relheight=1)
-        self.geoid2.insert(tk.END, "Big Units ID")
+        if self.title == "Prorate":
+            self.bigLabel.configure(text="units with data to prorate")
+        elif self.title == "Roundoff":
+            self.bigLabel.configure(text="congressional districts to round")
+        self.bigLabel.place(relx=0, rely=0)
+        self.geoid2.insert(tk.END, "ID Column")
         self.geoid2.bind("<Button-1>", self.clear_big_idprompt)
-        self.geoid2.place(relx=offset, rely=0.15)
-        self.voteEntry.insert(tk.END, "Election Column Name")
-        self.voteEntry.bind("<Button-1>", self.clear_vote_column)
-        self.big.place(relx=0.5+offset, rely=0.15)
-        self.voteEntry.place(relx=offset, rely=.55)
+        self.geoid2.place(relx=0.5+offset, rely=0.33)
+        if self.title == "Prorate":
+            self.voteEntry.insert(tk.END, "Vote columns to prorate")
+            self.voteEntry.bind("<Button-1>", self.clear_vote_column)
+            self.voteEntry.place(relx=offset, rely=.66)
+        self.big.place(relx=offset, rely=0.33)
 
         # 2.3 SELECT UNITS ROW (small)
-        self.num2_4.place(relx=thirdsSep[4], rely=.25, relwidth=thirdsLen, relheight=0.75)
+        self.num2_4.place(relx=thirdsSep[4], rely=.15, relwidth=thirdsLen, relheight=0.85)
         self.smallf1.place(relx=0, rely=0, relwidth=1, relheight=1)
-        self.geoid3.insert(tk.END, "Small Units ID")
+        self.smallLabel.place(relx=0, rely=0)
+        self.geoid3.insert(tk.END, "ID Column")
         self.geoid3.bind("<Button-1>", self.clear_small_idprompt)
-        self.geoid3.place(relx=offset, rely=0.15)
-        self.popEntry.insert(tk.END, "Population Column Name")
+        self.geoid3.place(relx=0.5+offset, rely=0.33)
+        self.popEntry.insert(tk.END, "Population column Name")
         self.popEntry.bind("<Button-1>", self.clear_pop_column)
-        self.small.place(relx=0.5+offset, rely=0.15)
-        self.popEntry.place(relx=offset,rely=.55)
+        self.small.place(relx=offset, rely=0.33)
+        self.popEntry.place(relx=offset,rely=.66)
 
         # 3
-        self.num3.place(relx=0, rely=rowDepth[1], relwidth=1, relheight=1/(num_rows+1))
-        self.num3_1.place(relx=0, rely=0, relwidth=1, relheight=0.25)
-        self.mergeLabel.place(relx=thirdsSep[0], rely=0, relwidth=1)
-        self.num3_2.place(relx=thirdsSep[0], rely=rowDepth[1]-2*offset, relwidth=thirdsLen, relheight=0.75)
+        self.num3.place(relx=0, rely=rowDepth[2], relwidth=1, relheight=rowDepth[3] - rowDepth[2])
+        self.num3_1.place(relx=0, rely=0, relwidth=1, relheight=0.15)
+        self.mergeLabel.place(relx=thirdsSep[0], rely=0, relwidth=1, relheight=1)
+        self.num3_2.place(relx=thirdsSep[0], rely=.15, relwidth=thirdsLen, relheight=0.85)
         self.basicf2.place(relx=0, rely=0, relwidth=1, relheight=1)
-        self.basicMergeEntry.insert(tk.END, "Basic Units ID")
+        self.basicMergeEntry.configure(state='normal')
+        self.basicMergeEntry.insert(tk.END, "CSV ID")
+        self.basicMergeEntry.configure(state='disabled')
         self.basicMergeEntry.bind("<Button-1>", self.clear_basic_csvidprompt)
-        self.basicMergeEntry.place(relx=offset, rely=0.15)
-        self.basicMerge.place(relx=0.5+offset, rely=0.15)
+        self.basicMergeEntry.place(relx=0.5+offset, rely=0.55)
+        self.basicMerge.place(relx=offset, rely=0.55)
         self.csv1.pack()
-        self.csv1.place(relx=offset, rely=.55)
+        self.csv1.place(relx=0.0, rely=.15)
 
-        self.num3_3.place(relx=thirdsSep[2], rely=rowDepth[1]-2*offset, relwidth=thirdsLen, relheight=0.75)
+        self.num3_3.place(relx=thirdsSep[2], rely=.15, relwidth=thirdsLen, relheight=0.85)
         self.bigf2.place(relx=0, rely=0, relwidth=1, relheight=1)
-        self.bigMergeEntry.insert(tk.END, "Basic Units ID")
+        self.bigMergeEntry.configure(state='normal')
+        self.bigMergeEntry.insert(tk.END, "CSV ID")
+        self.bigMergeEntry.configure(state='disabled')
         self.bigMergeEntry.bind("<Button-1>", self.clear_big_csvidprompt)
-        self.bigMergeEntry.place(relx=offset, rely=0.15)
-        self.bigMerge.place(relx=0.5+offset, rely=0.15)
+        self.bigMergeEntry.place(relx=0.5+offset, rely=0.55)
+        self.bigMerge.place(relx=offset, rely=0.55)
         self.csv2.pack()
-        self.csv2.place(relx=offset, rely=.55)
+        self.csv2.place(relx=0.0, rely=.15)
 
-        self.num3_4.place(relx=thirdsSep[4], rely=rowDepth[1]-2*offset, relwidth=thirdsLen, relheight=0.75)
+        self.num3_4.place(relx=thirdsSep[4], rely=.15, relwidth=thirdsLen, relheight=0.85)
         self.smallf2.place(relx=0, rely=0, relwidth=1, relheight=1)
-        self.smallMergeEntry.insert(tk.END, "Basic Units ID")
+        self.smallMergeEntry.configure(state='normal')
+        self.smallMergeEntry.insert(tk.END, "CSV ID")
+        self.smallMergeEntry.configure(state='disabled')
         self.smallMergeEntry.bind("<Button-1>", self.clear_small_csvidprompt)
-        self.smallMergeEntry.place(relx=offset, rely=0.15)
-        self.smallMerge.place(relx=0.5+offset, rely=0.15)
+        self.smallMergeEntry.place(relx=0.5+offset, rely=0.55)
+        self.smallMerge.place(relx=offset, rely=0.55)
         self.csv3.pack()
-        self.csv3.place(relx=offset, rely=.55)
+        self.csv3.place(relx=0.0, rely=.15)
 
         # 4
-        self.num4.place(relx=0, rely=rowDepth[2], relwidth=1, relheight=1/(num_rows))
+        self.num4.place(relx=0, rely=rowDepth[3], relwidth=1, relheight=rowDepth[4] - rowDepth[3])
         self.num4_3.place(relx=thirdsSep[4], rely=0, relwidth=thirdsLen, relheight=1)
-        self.processLabel.place(relx=0, rely=0, relwidth=1)
-        self.b.place(relx=.5, rely=.75)
+        self.b.place(relx=.5, rely=0)
 
 def demo():
     root = tk.Tk()
@@ -383,7 +403,7 @@ def demo():
     page2 = ApplicationTab("Roundoff", nb)
     page2.show()
 
-    nb.add(page1, text='Process')
+    nb.add(page1, text='Prorate')
     nb.add(page2, text='Roundoff')
 
     nb.pack(expand=1, fill="both")
