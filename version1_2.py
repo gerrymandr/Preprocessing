@@ -253,12 +253,34 @@ class ApplicationTab(ttk.Frame):
         self.bigMergeEntry.delete(0, tk.END)
 
     def clear_small_csvidprompt(self, event):
-        self.smallMerge.delete(0, tk.END)
+        self.smallMergeEntry.delete(0, tk.END)
 
     def selectPath(self, selfUnitsPath):
         setattr(self, selfUnitsPath, filedialog.askopenfilename())
         print("File selected : " + getattr(self, selfUnitsPath))
     
+    def enable_basic_csv(self):
+        if self.basicCheck.get():
+            self.basicMergeEntry.configure(state='normal')
+            self.basicMerge.configure(state='normal')
+        else:
+            self.basicMergeEntry.configure(state='disabled')
+            self.basicMerge.configure(state='disabled')
+    def enable_big_csv(self):
+        if self.bigCheck.get():
+            self.bigMergeEntry.configure(state='normal')
+            self.bigMerge.configure(state='normal')
+        else:
+            self.bigMergeEntry.configure(state='disabled')
+            self.bigMerge.configure(state='disabled')
+    def enable_small_csv(self):
+        if self.smallCheck.get():
+            self.smallMerge.configure(state='normal')
+            self.smallMerge.configure(state='normal')
+        else:
+            self.smallMerge.configure(state='disabled')
+            self.smallMerge.configure(state='disabled')
+
     def __init__(self, title, root):
         tk.Frame.__init__(self, root)
         
@@ -308,7 +330,7 @@ class ApplicationTab(ttk.Frame):
         self.small = tk.Button(self.smallf1, text="Browse",
                      command=partial(self.selectPath, 'smallestUnits'), width=10, height=1)
         self.popEntry = tk.Entry(self.num2_4, width=10)
-
+        
 
         # 3.0 ADD CSV DATA (title)
         self.num3_1 = tk.Frame(self.num3)
@@ -319,7 +341,14 @@ class ApplicationTab(ttk.Frame):
         self.basicf2 = tk.Frame(self.num3_2, bg=lBasicColor)
         self.basicMergeEntry = tk.Entry(self.basicf2, width=10)
         self.basicMerge = tk.Button(self.basicf2, text="Browse", command=selectBasicMerge, width=10, height=1)
-        self.basicMergeLabel = ttk.Label(self.basicf2, text =self.basicMergePath,font=("Helvetica", 10))
+        self.basicMergeLabel = ttk.Label(self.basicf2, text =self.basicMergePath,font=("Helvtica", 10))
+        self.basicMergeEntry.configure(state='disabled')
+        self.basicMerge.configure(state='disabled')
+        
+        self.basicCheck = tk.BooleanVar()
+        self.csv1 = tk.Checkbutton(self.num3_2, text="add CSV data", variable=self.basicCheck,
+                onvalue=True, offvalue=False, height=1, width=14, bg=basicColor, 
+                command=self.enable_basic_csv)
 
         # 3.2 ADD CSV DATA (big)
         self.num3_3 = tk.Frame(self.num3)
@@ -327,6 +356,13 @@ class ApplicationTab(ttk.Frame):
         self.bigMergeEntry = tk.Entry(self.bigf2, width=10)
         self.bigMerge = tk.Button(self.bigf2, text="Browse", command=selectBiggestMerge, width=10, height=1)
         self.bigMergeLabel = ttk.Label(root, text =self.biggestMergePath,font=("Helvetica", 10))
+        self.bigMergeEntry.configure(state='disabled')
+        self.bigMerge.configure(state='disabled')
+
+        self.bigCheck = tk.BooleanVar()
+        self.csv2 = tk.Checkbutton(self.num3_3, text="add CSV data", variable=self.bigCheck,
+                onvalue=True, offvalue=False, height=1, width=14, bg=bigColor, 
+                command=self.enable_big_csv)
 
         # 3.3 ADD CSV DATA (small)
         self.num3_4 = tk.Frame(self.num3)
@@ -334,7 +370,14 @@ class ApplicationTab(ttk.Frame):
         self.smallMergeEntry = tk.Entry(self.smallf2, width=10)
         self.smallMerge = tk.Button(self.smallf2, text="Browse", command=selectSmallestMerge, width=10, height=1)
         self.smallMergeLabel = ttk.Label(root, text =self.smallestMergePath,font=("Helvetica", 10))
+        self.smallMergeEntry.configure(state='disabled')
+        self.smallMerge.configure(state='disabled')
 
+        self.smallCheck = tk.BooleanVar()
+        self.csv3 = tk.Checkbutton(self.num3_4, text="add CSV data", variable=self.smallCheck,
+                onvalue=True, offvalue=False, height=1, width=14, bg=smallColor, 
+                command=self.enable_small_csv)
+        
         # 4.0 PROCESS BUTTON
         self.num4_3 = tk.Frame(self.num4, bg=columnNamesColor)
         self.processLabel = tk.Label(self.num4_3, text="ANALYSIS", anchor=tk.W, font="Helvetica 14", bg=columnNamesColor)
@@ -344,6 +387,12 @@ class ApplicationTab(ttk.Frame):
         
     
     def show(self):
+
+        #ORGANIZE INTO ROWS
+        #self.num1.pack(side='top', fill='x', expand=False)
+        #self.num2.pack(side='top', fill='both', expand=True)
+        #self.num3.pack(side='top', fill='both', expand=True)
+        #self.num4.pack(side='top', fill='both', expand=True)
         # 1.0: TITLE ROW
         self.num1.place(x=0, y=0, relwidth=1, relheight=1/(num_rows+1))
         self.topLabel.place(relx=thirdsSep[0], y=0, relwidth=1)
@@ -386,28 +435,32 @@ class ApplicationTab(ttk.Frame):
         self.num3.place(relx=0, rely=rowDepth[1], relwidth=1, relheight=1/(num_rows+1))
         self.num3_1.place(relx=0, rely=0, relwidth=1, relheight=0.25)
         self.mergeLabel.place(relx=thirdsSep[0], rely=0, relwidth=1)
-
-        self.num3_2.place(relx=thirdsSep[0], rely=rowDepth[1]+offset, relwidth=thirdsLen, relheight=0.75)
+        self.num3_2.place(relx=thirdsSep[0], rely=rowDepth[1]-2*offset, relwidth=thirdsLen, relheight=0.75)
         self.basicf2.place(relx=0, rely=0, relwidth=1, relheight=1)
         self.basicMergeEntry.insert(tk.END, "Basic Units ID")
         self.basicMergeEntry.bind("<Button-1>", self.clear_basic_csvidprompt)
         self.basicMergeEntry.place(relx=offset, rely=0.15)
         self.basicMerge.place(relx=0.5+offset, rely=0.15)
-        self.basicMergeLabel.place(relx=0.3+offset, rely=0.05)
+        self.csv1.pack()
+        self.csv1.place(relx=offset, rely=.55)
 
-        self.num3_3.place(relx=thirdsSep[2], rely=rowDepth[1]+offset, relwidth=thirdsLen, relheight=0.75)
+        self.num3_3.place(relx=thirdsSep[2], rely=rowDepth[1]-2*offset, relwidth=thirdsLen, relheight=0.75)
         self.bigf2.place(relx=0, rely=0, relwidth=1, relheight=1)
         self.bigMergeEntry.insert(tk.END, "Basic Units ID")
         self.bigMergeEntry.bind("<Button-1>", self.clear_big_csvidprompt)
         self.bigMergeEntry.place(relx=offset, rely=0.15)
         self.bigMerge.place(relx=0.5+offset, rely=0.15)
+        self.csv2.pack()
+        self.csv2.place(relx=offset, rely=.55)
 
-        self.num3_4.place(relx=thirdsSep[4], rely=rowDepth[1]+offset, relwidth=thirdsLen, relheight=0.75)
+        self.num3_4.place(relx=thirdsSep[4], rely=rowDepth[1]-2*offset, relwidth=thirdsLen, relheight=0.75)
         self.smallf2.place(relx=0, rely=0, relwidth=1, relheight=1)
         self.smallMergeEntry.insert(tk.END, "Basic Units ID")
         self.smallMergeEntry.bind("<Button-1>", self.clear_small_csvidprompt)
         self.smallMergeEntry.place(relx=offset, rely=0.15)
         self.smallMerge.place(relx=0.5+offset, rely=0.15)
+        self.csv3.pack()
+        self.csv3.place(relx=offset, rely=.55)
 
         # 4
         self.num4.place(relx=0, rely=rowDepth[2], relwidth=1, relheight=1/(num_rows))
