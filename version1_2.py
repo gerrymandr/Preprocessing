@@ -36,30 +36,6 @@ lBigColor =  "#E4F5B3"
 lSmallColor ="#FDD093"
 columnNamesColor = "#D3D3D3"
 
-def selectBasicUnits():
-    '''
-    Allows the user to browse for a file of their basic units.
-    :return: Filebath to the shapefile with their basic units.
-    '''
-    global basicUnits
-    basicUnits = filedialog.askopenfilename()
-
-def selectBiggerUnits():
-    '''
-    Allows the user to browse for a file of their bigger units.
-    :return: Filebath to the shapefile with their bigger units.
-    '''
-    global biggerUnits
-    biggerUnits = filedialog.askopenfilename()
-
-
-def selectSmallestUnits():
-    '''
-    Allows the user to browse for a file of their smaller units.
-    :return: Filebath to the shapefile with their smaller units.
-    '''
-    global smallestUnits
-    smallestUnits = filedialog.askopenfilename()
 
 def callback(page):
     '''
@@ -141,32 +117,6 @@ def callback(page):
     else:
         raise Exception("ERROR: Invalid page")
 
-
-
-def selectBasicMerge():
-    '''
-    Allows the user to browse for a file to merge to basic units.
-    :return: Filepath of the csv with data.
-    '''
-    global basicMergePath
-    basicMergePath = filedialog.askopenfilename()
-    print("file selected: " + basicMergePath)
-
-def selectBiggestMerge():
-    '''
-    Allows the user to browse for a file to merge to bigger units.
-    :return: Filepath of the csv with data.
-    '''
-    global biggestMergePath
-    biggestMergePath = filedialog.askopenfilename()
-
-def selectSmallestMerge():
-    '''
-    Allows the user to browse for a file to merge to smallest units.
-    :return: Filepath of the csv with data.
-    '''
-    global smallestMergePath
-    smallestMergePath = filedialog.askopenfilename()
 
 
 class ApplicationTab(ttk.Frame):
@@ -289,8 +239,9 @@ class ApplicationTab(ttk.Frame):
         self.num3_2 = tk.Frame(self.num3)
         self.basicf2 = tk.Frame(self.num3_2, bg=lBasicColor)
         self.basicMergeEntry = tk.Entry(self.basicf2, width=10)
-        self.basicMerge = tk.Button(self.basicf2, text="Browse", command=selectBasicMerge, width=10, height=1)
-        self.basicMergeLabel = ttk.Label(self.basicf2, text =self.basicMergePath,font=("Helvtica", 10))
+        self.basicMerge = tk.Button(self.basicf2, text="Browse",
+                command=partial(self.selectPath, 'basicMergePath', 'basicMerge'), width=10, height=1)
+        self.basicMergeLabel = ttk.Label(self.basicf2, text=self.basicMergePath,font=("Helvtica", 10))
         self.basicMergeEntry.configure(state='disabled')
         self.basicMerge.configure(state='disabled')
         
@@ -303,7 +254,8 @@ class ApplicationTab(ttk.Frame):
         self.num3_3 = tk.Frame(self.num3)
         self.bigf2 = tk.Frame(self.num3_3, bg=lBigColor)
         self.bigMergeEntry = tk.Entry(self.bigf2, width=10)
-        self.bigMerge = tk.Button(self.bigf2, text="Browse", command=selectBiggestMerge, width=10, height=1)
+        self.bigMerge = tk.Button(self.bigf2, text="Browse",
+                command=partial(self.selectPath, 'biggestMergePath', 'bigMerge'), width=10, height=1)
         self.bigMergeLabel = ttk.Label(root, text =self.biggestMergePath,font=("Helvetica", 10))
         self.bigMergeEntry.configure(state='disabled')
         self.bigMerge.configure(state='disabled')
@@ -317,7 +269,8 @@ class ApplicationTab(ttk.Frame):
         self.num3_4 = tk.Frame(self.num3)
         self.smallf2 = tk.Frame(self.num3_4, bg=lSmallColor)
         self.smallMergeEntry = tk.Entry(self.smallf2, width=10)
-        self.smallMerge = tk.Button(self.smallf2, text="Browse", command=selectSmallestMerge, width=10, height=1)
+        self.smallMerge = tk.Button(self.smallf2, text="Browse",
+                command=partial(self.selectPath, 'smallestMergePath', 'smallMerge'), width=10, height=1)
         self.smallMergeLabel = ttk.Label(root, text =self.smallestMergePath,font=("Helvetica", 10))
         self.smallMergeEntry.configure(state='disabled')
         self.smallMerge.configure(state='disabled')
