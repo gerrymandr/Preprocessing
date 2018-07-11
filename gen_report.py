@@ -91,6 +91,9 @@ def generic_shapefile_report(outputName, dataFrame=None, shapefileName=None, idC
 
             if voteColumns is not None:
                 f.write(f"<h2 width:100%>Vote Data:</h2>\n")
+                picsName = f"{outputName.split('.')[0]}_images/"
+                if not os.path.isdir(picsName):
+                    os.mkdir(picsName)
 
                 f.write(f"<p>\n<table>\n<tr><th>Column Name</th><th>Total Count</th><th>Max</th><th>Min</th><th>Average</th></tr>\n")
                 for column in voteColumns:
@@ -106,6 +109,17 @@ def generic_shapefile_report(outputName, dataFrame=None, shapefileName=None, idC
                     f.write("</tr>\n")
                 f.write("</table>\n</p>\n")
                 f.write("<br>\n")
+                f.write("<h3 width=100%> Vote Data Visualized</h3>\n")
+                f.write("<p width=100%>\n")
+                for column in voteColumns:
+                    plotname = picsname + str(column) + ".png"
+                    dataFrame.plot(column=column)
+                    plt.title(f"{column} voting data")
+                    plt.savefig(plotname)
+                    f.write( "<div width=100%>\n")
+                    f.write(f"    <img src='{plotname}' width=60%/>\n")
+                    f.write( "</div>\n")
+                f.write("</p>\n")
 
             f.write("</body>\n")
             f.write("</html>\n")
@@ -250,7 +264,24 @@ def prorate_report(
                 f.write("</table>\n</p>\n")
                 f.write("<br>\n")
 
-
+                f.write("<h3 width=100%> Vote Data Visualized</h3>\n")
+                f.write("<p width=100%>\n")
+                for column in voteColumns:
+                    # original
+                    oplotname = picsname + str(column) + "_o.png"
+                    bigDF[1].plot(column=column)
+                    plt.title(f" Original {column} voting data")
+                    plt.savefig(oplotname)
+                    # prorated
+                    pplotname = picsname + str(column) + "_p.png"
+                    basicDF[1].plot(column=column)
+                    plt.title(f" Prorated {column} voting data")
+                    plt.savefig(pplotname)
+                    f.write(f"<div width=100%>\n")
+                    f.write(f"    <img src='{oplotname}' width=45%/>\n")
+                    f.write(f"    <img src='{pplotname}' width=45%/>\n")
+                    f.write(f"</div>\n")
+                f.write("</p>\n")
 
             f.write("</body>\n")
             f.write("</html>\n")
@@ -261,7 +292,27 @@ def roundoff_report(
         bigDF=None,
         basicDF=None,
         big_geoid=None,
-        basic_geoid=None):
+        basic_geoid=None,
+        lookupTable=None):
+
+        if lookupTable is not None:
+            # get all of the units in basicDF that have multiple bigDF entries
+            # that correspond to it(i.e. the ones that are split by bigDF units)
+            basicsplit = [x for x in lookupTable["basicUnits"].unique() if len(lookupTable.loc[lookupTable["basicUnits"]== x, :]) > 1]
+
+            # get the average number of pieces each of the split basicUnits is in
+            splitOnes = lookupTable.loc[ lookupTable['basicUnits'].isin(basicsplit), ["area", "basicUnits"]]
+            avgNumOfSplits = len(splitOnes) * 1.0 / len(basicsplit)
+
+            # get area of each piece
+            basicsplit = splitOnes["basicUnits"].tolist()
+
+            intersectArea = np.array(splitOnes['area'].tolist())
+            basicsplitsize = [basicDF.loc[basicDF[basic_geoid] == x, "geometry"] for x in basicsplit]
+            areas = [float(x.area) for x in basicsplitsize]
+            basicsplitproportion = intersectArea / areas
+            basicsplitproportion = [x for i, x in enumerate(basicsplitproportion) if i < len(basicsplitproportion/2)]
+            nbasicsplit = len(set(basicsplit))
 
         with open(reportOutputFileName, "w") as f:
 
@@ -281,7 +332,7 @@ def roundoff_report(
             l1 = [x for x in basicDF[basic_geoid]]
             random.shuffle(l1)
             basicDF['random'] = l1
-            basicDF.plot(column='random', cmap='YlGnBu')
+            basicDF.plot(column='random', cmap='Blues')
             plt.title("Roundoff Units")
             plt.savefig(basicUnits)
 
@@ -293,16 +344,30 @@ def roundoff_report(
             write_header_styles(f)
             f.write("<body>\n")
 
-            f.write(f"<h3 width=100%> Roundoff Results</h3>\n")
+            f.write(f"<h2 width=100%> Roundoff Results</h2>\n")
             f.write( "<p>\n")
             f.write( '    <div width=100%>\n')
             f.write(f"        <img src='{bigUnits}' width=30%/>\n")
             f.write(f"        <img src='{basicUnits}' width=30%/>\n")
             f.write(f"        <img src='{roundedUnits}' width=30%/>\n")
             f.write( '    </div>\n')
+            f.write( '    <div width=100%>\n')
+            f.write(f"        <div width=33%>\n")
+            f.write(f"             {len(bigDF)} Units\n")
+            f.write(f"        </div>" )
+            f.write(f"        <div width=33%>\n")
+            f.write(f"             {len(basicDF)} Units\n")
+            f.write(f"        </div>" )
+            f.write(f"        <div width=33%>\n")
+            if lookupTable is not None:
+                f.write(f"            <ul><li> {nbasicsplit} Units split by roundoff</li>\n")
+                f.write(f"                <li> Smallest split was {min(baicsplitproportion)} fraction of original area</li>\n")
+                f.write(f"                <li> Average split proportion: {np.mean(baicsplitproportion)} percent of original area</li></ul>\n")
+            f.write(f"        </div>")
+            f.write( '    </div>\n')
             f.write( "</p>\n")
+
+            f.write("<h3 width=100%> </h3>\n")
 
             f.write("</body>\n")
             f.write("</html>\n")
-
-

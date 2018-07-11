@@ -126,7 +126,7 @@ def callback(page):
 
         basicDF.to_file("Rounded.shp")
         print("\nwrote to new shapefile: Rounded.shp\n")
-        roundoff_report("Roundoff.html", bigDF, basicDF, big_geoid, basic_geoid)
+        roundoff_report("Roundoff.html", bigDF, basicDF, big_geoid, basic_geoid, lookupTable)
         print("\nReport written to file: Roundoff.html\n")
 
     elif page.title == "Merge & Report":
