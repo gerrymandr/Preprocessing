@@ -361,8 +361,8 @@ def roundoff_report(
             f.write(f"        <div width=33%>\n")
             if lookupTable is not None:
                 f.write(f"            <ul><li> {nbasicsplit} Units split by roundoff</li>\n")
-                f.write(f"                <li> Smallest split was {min(baicsplitproportion)} fraction of original area</li>\n")
-                f.write(f"                <li> Average split proportion: {np.mean(baicsplitproportion)} percent of original area</li></ul>\n")
+                f.write(f"                <li> Smallest split was {min(basicsplitproportion)} fraction of original area</li>\n")
+                f.write(f"                <li> Average split proportion: {np.mean(basicsplitproportion)} percent of original area</li></ul>\n")
             f.write(f"        </div>")
             f.write( '    </div>\n')
             f.write( "</p>\n")
