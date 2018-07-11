@@ -132,7 +132,7 @@ def generic_shapefile_report(outputName, dataFrame=None, shapefileName=None, idC
 
 
 def prorate_report(
-        reportOutputFileName="ProrateReport.html",
+        outputName="ProrateReport.html",
         bigDF=None,
         basicDF=None,
         smallDF=None,
@@ -143,7 +143,7 @@ def prorate_report(
         voteColumns=None,
         electionDicts=None):
 
-        with open(reportOutputFileName, "w") as f:
+        with open(outputName, "w") as f:
             f.write("<html>\n")
             write_header_styles(f)
 
@@ -288,7 +288,7 @@ def prorate_report(
 
 
 def roundoff_report(
-        reportOutputFileName="RoundoffReport.html",
+        outputName="RoundoffReport.html",
         bigDF=None,
         basicDF=None,
         big_geoid=None,
@@ -314,9 +314,9 @@ def roundoff_report(
             basicsplitproportion = [x for i, x in enumerate(basicsplitproportion) if i < len(basicsplitproportion/2)]
             nbasicsplit = len(set(basicsplit))
 
-        with open(reportOutputFileName, "w") as f:
+        with open(outputName, "w") as f:
 
-            picsName = f"{reportOutputFileName.split('.')[0]}_images/"
+            picsName = f"{outputName.split('.')[0]}_images/"
             if not os.path.isdir(picsName):
                 os.mkdir(picsName)
 
