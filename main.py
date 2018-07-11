@@ -69,6 +69,7 @@ def callback(page):
             elif filename.split(".")[-1] == "xlsx":
                 basicMerge = pd.read_excel(page.basicMergePath)
             basicDF = basicDF.merge(basicMerge, left_on=basic_geoid, right_on=merge_basic_col)
+        basicDF.fillna("0", inplace=True)
     else:
         raise Exception("ERROR: Must enter a valid file name for basic units")
 
@@ -81,6 +82,7 @@ def callback(page):
             elif filename.split(".")[-1] == "xlsx":
                 bigMerge = pd.read_excel(page.biggestMergePath)
             bigDF = bigDF.merge(bigMerge, left_on=big_geoid, right_on=merge_biggest_col)
+        bigDF.fillna("0", inplace=True)
 
     if len(page.smallestUnits)>0:
         smallDF = gp.read_file(page.smallestUnits)
@@ -91,6 +93,7 @@ def callback(page):
             elif filename.split(".")[-1] == "xlsx":
                 smallMerge = pd.read_excel(page.smallMergePath)
             smallDF = bigDF.merge(smallMerge, left_on=small_geoid, right_on=merge_smallest_col)
+        smallDF.fillna("0", inplace=True)
     else:
         smallDF = None
     lookupTable = None
@@ -99,8 +102,13 @@ def callback(page):
         lookupTable = getOverlayBetweenBasicAndLargeBySmall(smallDF, basicDF, bigDF, small_geoid, population, basic_geoid, big_geoid)
         proratedValues = prorateWithDFs(bigDF, basicDF, big_geoid, basic_geoid, voting, lookupTable, prorateCol='pop')
 
+        mylist = set(basicDF[basic_geoid]) - set(proratedValues.keys())
+        if len(mylist) > 0:
+            print("WARNING: the following vtds were not allocated any votes: ")
+            print(mylist)
+
         for i, c in enumerate(voting):
-            basicDF[c] = [proratedValues[x][i] for x in basicDF[basic_geoid]]
+            basicDF[c] = [proratedValues[x][i] if x not in mylist else 0 for x in basicDF[basic_geoid]]
 
         basicDF.to_file("Prorated.shp")
         print("\nwrote to new shapefile: Prorated.shp\n")

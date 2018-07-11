@@ -86,7 +86,7 @@ def prorateWithDFs(bigDF, basicDF, bigIDCol="GEOID", basicIDCol="GEOID", bigVote
     myData = myData.merge(bigDF.loc[:, [bigIDCol, 'totalAmounts', *bigVoteColumns]], left_on='bigUnits', right_on=bigIDCol,  how='outer')
 
     for c in bigVoteColumns:
-        myData[c] = myData[c] * myData[prorateCol] / myData['totalAmounts']
+        myData[c] = myData[c].astype(float) * myData[prorateCol].astype(float / myData['totalAmounts'].astype(float)
 
     myData = myData.groupby(["basicUnits"])[bigVoteColumns].sum()
 
