@@ -112,7 +112,7 @@ def generic_shapefile_report(outputName, dataFrame=None, shapefileName=None, idC
                 f.write("<h3 width=100%> Vote Data Visualized</h3>\n")
                 f.write("<p width=100%>\n")
                 for column in voteColumns:
-                    plotname = picsname + str(column) + ".png"
+                    plotname = picsName + str(column) + ".png"
                     dataFrame.plot(column=column)
                     plt.title(f"{column} voting data")
                     plt.savefig(plotname)
@@ -268,12 +268,12 @@ def prorate_report(
                 f.write("<p width=100%>\n")
                 for column in voteColumns:
                     # original
-                    oplotname = picsname + str(column) + "_o.png"
+                    oplotname = picsName + str(column) + "_o.png"
                     bigDF[1].plot(column=column)
                     plt.title(f" Original {column} voting data")
                     plt.savefig(oplotname)
                     # prorated
-                    pplotname = picsname + str(column) + "_p.png"
+                    pplotname = picsName + str(column) + "_p.png"
                     basicDF[1].plot(column=column)
                     plt.title(f" Prorated {column} voting data")
                     plt.savefig(pplotname)
