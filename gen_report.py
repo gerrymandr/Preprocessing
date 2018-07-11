@@ -228,11 +228,11 @@ def prorate_report(
 
             if voteColumns is not None:
                 f.write(f"<h2 width=100%> Voting Data:</h2>\n")
-                """
+
                 picsName = f"{outputName.split('.')[0]}_images/"
                 if not os.path.isdir(picsName):
                     os.mkdir(picsName)
-                """
+
                 f.write(f"<h3 width=100%> Original counts</h3>\n")
                 f.write(f"<p>\n<table>\n<tr><th>Column Name</th><th>Total Count</th><th>Max</th><th>Min</th><th>Average</th></tr>\n")
                 for column in voteColumns:
