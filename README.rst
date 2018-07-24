@@ -1,3 +1,5 @@
+.. contents::
+
 =========================
 Preprocessing Shapefiles!
 =========================
@@ -23,8 +25,8 @@ Merging csv data, collecting column information, and reporting
 ==============================================================
 
 .. figure:: images/report.png
+   :figwidth: 45%
    :align: center
-   :width: 45%
 
 This tab allows for an easy get-to-know your data option. 
 
@@ -50,7 +52,7 @@ Roundoff: merging congressional district Data from one shapefile to another
 ===========================================================================
 
 .. figure:: images/roundoff.png
-   :width: 45%
+   :figwidth: 45%
    :align: center
 
 When 2 maps align, but the lines drawn on them don't, it can be useful to 
@@ -119,6 +121,7 @@ Prorating Data from one shapefile to another
 ============================================
 
 .. figure:: images/prorate.png
+   :figwidth: 45%
    :align: center
 
 To prorate data from one shapefile to another, you need 
