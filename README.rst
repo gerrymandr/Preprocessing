@@ -24,6 +24,7 @@ Merging csv data, collecting column information, and reporting
 
 .. image:: images/report.png
    :align: center
+   :scale: 45%
 
 This tab allows for an easy get-to-know your data option. 
 
@@ -49,6 +50,7 @@ Roundoff: merging congressional district Data from one shapefile to another
 ===========================================================================
 
 .. image:: images/roundoff.png
+   :scale: 45%
    :align: center
 
 When 2 maps align, but the lines drawn on them don't, it can be useful to 
@@ -71,10 +73,7 @@ of the two shapefiles being used.
 Example
 -------
 In the **test_files/** folder, there are 2 useful shapefiles: 
-
-    - biggestUnits.shp
-
-    - basicUnits.shp
+biggestUnits.shp and basicUnits.shp
 
 The biggestUnits.shp file covers all of basicUnits.shp, 
 but the units do not overlap with the boundaries of basicUnits perfectly. 
@@ -84,11 +83,11 @@ but the units do not overlap with the boundaries of basicUnits perfectly.
 .. |big| image:: images/big.png
     :scale: 100%
 
- +-----------------+------------------+
- |  basicUnits.shp | biggestUnits.shp |
- +=================+==================+
- |     |basic|     |      |big|       |
- +-----------------+------------------+
++-----------------+------------------+
+|  basicUnits.shp | biggestUnits.shp |
++=================+==================+
+|     |basic|     |      |big|       |
++-----------------+------------------+
 
 In order to get an association where each unit in 
 basicUnits.shp is assigned to a unit in biggestUnits.shp, we 
@@ -107,12 +106,12 @@ This generates the report and shapefile!
 .. |rbsc| image:: images/r_basic.png
     :scale: 100%
 
- +-----------------+------------------+
- |  biggest Units  |   biggest Units  |
- | Before Rounding | Rounded to Basic |
- +=================+==================+
- |      |rbig|     |      |rbsc|      |
- +-----------------+------------------+
++-----------------+------------------+
+|  biggest Units  |   biggest Units  |
+| Before Rounding | Rounded to Basic |
++=================+==================+
+|      |rbig|     |      |rbsc|      |
++-----------------+------------------+
 
 
 
@@ -161,12 +160,12 @@ This generates the report and shapefile!
 .. |pbsc| image:: images/votes_p.png
     :scale: 100%
 
- +-----------------+-------------------+
- |  biggest Units  |    basic Units    |
- | with vote data  | with rounded data |
- +=================+===================+
- |      |pbig|     |      |pbsc|       |
- +-----------------+-------------------+
++-----------------+-------------------+
+|  biggest Units  |    basic Units    |
+| with vote data  | with rounded data |
++=================+===================+
+|      |pbig|     |      |pbsc|       |
++-----------------+-------------------+
 
 
 Merging on extra data
