@@ -26,10 +26,31 @@ def write_header_styles(fstream):
 
 
 def generic_shapefile_report(outputName, dataFrame=None, shapefileName=None, idColumn=None, voteColumns=None, electionDicts=None):
+    """ Generate a generic report on a shapefile.
+    inputs:
+        :outputName:    name of file to write out report
+        :dataFrame:     (optional) a geoDataFrame to do the report on. If not specified and shapefileName passed in, will use that
+        :shapefileName: (optional) name of the shapefile to report on
+        :idColumn:      (optional) unique ID column in dataFrame to look at
+        :voteColumns:   (optional) list of columns of numeric data to report on (max/min/variance, etc)
+        :electionDicts: (optional) dictionary of the form:
+                            - key: string(election name)
+                            - val: dictionary with keys 'D' and 'R', and valued at the column name in dataFrame with those votes
+                            e.g.
+                            { 'presidential': {'D': 'PRES_DV08', 'R': 'PRES_RV08'}}
+    """
+
     if dataFrame is not None:
         outputName = outputName.split('.')[0] + '.html'
 
         with open(outputName, "w") as f:
+            picsName = f"{outputName.split('.')[0]}_images/"
+            if not os.path.isdir(picsName):
+                os.mkdir(picsName)
+
+            dataFrame.plot()
+            plt.savefig(picsName + "initial_plot.png")
+
             f.write("<html>\n")
             write_header_styles(f)
 
@@ -52,6 +73,7 @@ def generic_shapefile_report(outputName, dataFrame=None, shapefileName=None, idC
             avgPolsPop, maxPolsPop, minPolsPop = np.round(np.mean(polsbyPopper), roundTol), max(polsbyPopper), min(polsbyPopper)
 
             f.write(f"<h2 width:100%> Geometry: </h2>\n")
+            f.write(f"<p width=100%><img src='{picsName}initial_plot.png' width=50%/></p>\n")
             f.write("<ul>\n")
             f.write(f"<li>{numUnits} units</li>\n")
             f.write(f"<li>{numIslands} disconnected units</li>\n")
@@ -64,9 +86,6 @@ def generic_shapefile_report(outputName, dataFrame=None, shapefileName=None, idC
 
             if electionDicts is not None:
                 f.write(f"<h2 width:100%> Elections Data:</h2>\n")
-                picsName = f"{outputName.split('.')[0]}_images/"
-                if not os.path.isdir(picsName):
-                    os.mkdir(picsName)
 
                 for election in electionDicts.keys():
                     f.write("<p width=100%>\n")
