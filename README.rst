@@ -78,16 +78,16 @@ biggestUnits.shp and basicUnits.shp
 The biggestUnits.shp file covers all of basicUnits.shp, 
 but the units do not overlap with the boundaries of basicUnits perfectly. 
 
-.. |basic| image:: images/basic.png
-    :scale: 100%
 .. |big| image:: images/big.png
     :scale: 100%
+.. |basic| image:: images/basic.png
+    :scale: 100%
 
-+-----------------+------------------+
-|  basicUnits.shp | biggestUnits.shp |
-+=================+==================+
-|     |basic|     |      |big|       |
-+-----------------+------------------+
++------------------+-----------------+
+| biggestUnits.shp |  basicUnits.shp |
++==================+=================+
+|      |big|       |     |basic|     |
++------------------+-----------------+
 
 In order to get an association where each unit in 
 basicUnits.shp is assigned to a unit in biggestUnits.shp, we 
