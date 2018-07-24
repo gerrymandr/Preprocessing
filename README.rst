@@ -24,7 +24,7 @@ Merging csv data, collecting column information, and reporting
 
 .. image:: images/report.png
    :align: center
-   :scale: 45%
+   :width: 45%
 
 This tab allows for an easy get-to-know your data option. 
 
@@ -50,7 +50,7 @@ Roundoff: merging congressional district Data from one shapefile to another
 ===========================================================================
 
 .. image:: images/roundoff.png
-   :scale: 45%
+   :width: 45%
    :align: center
 
 When 2 maps align, but the lines drawn on them don't, it can be useful to 
