@@ -22,7 +22,7 @@ Currently supported functionality includes:
 Merging csv data, collecting column information, and reporting
 ==============================================================
 
-.. image:: images/report.png
+.. figure:: images/report.png
    :align: center
    :width: 45%
 
@@ -49,7 +49,7 @@ is the name of the original shapefile
 Roundoff: merging congressional district Data from one shapefile to another
 ===========================================================================
 
-.. image:: images/roundoff.png
+.. figure:: images/roundoff.png
    :width: 45%
    :align: center
 
@@ -118,7 +118,7 @@ This generates the report and shapefile!
 Prorating Data from one shapefile to another
 ============================================
 
-.. image:: images/prorate.png
+.. figure:: images/prorate.png
    :align: center
 
 To prorate data from one shapefile to another, you need 
