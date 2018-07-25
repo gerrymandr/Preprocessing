@@ -203,7 +203,7 @@ navigate to the Preprocessing folder in terminal, and type
 This launches an interactive prompt with 3 tabs, one for 
 each of the proeccesses that can be done. 
 
-.. NOTE:: this code produces reports for each process, as well as 
+.. note:: this code produces reports for each process, as well as 
     new shapefiles with added data if either proration or roundoff is used. 
     These are automatically stored in the **Preprocessing/** directory. 
 
