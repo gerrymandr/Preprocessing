@@ -39,7 +39,7 @@ This tab allows for an easy get-to-know your data option.
 
     - To generate a report that has the names of the columns in the shapefile, 
       a plot of the file itself, and summary statistics on the geometry of the 
-      geographic units involved, click the **Merge & Report** button
+      geographic units involved, click the ``Merge & Report!`` button
 
     - For a report that has more in-depth data about specific columns in the 
       shapefile, type the names of those columns, comma separated, in the orange box.
@@ -63,10 +63,10 @@ both located in the Preprocessing/ folder.
 These files are called Roundoff.html and Rounded.shp respectively. 
 
 The shapefile is based on the geographic units and data 
-in the **basic chain units** shapefile, but with an added column: **CD**. 
-This contains the value from the **Column Name** column in 
-the **congressional districts to round** file that most closely 
-corresponds to the units in **basic chain units**
+in the ``basic chain units`` shapefile, but with an added column: **CD**. 
+This contains the value from the ``Column Name`` column in 
+the ``congressional districts to round`` file that most closely 
+corresponds to the units in ``basic chain units``
 
 The report contains data about the process of rounding off. Specifically, 
 how many of the geographic units did not align well, and the general characteristics 
@@ -96,10 +96,10 @@ basicUnits.shp is assigned to a unit in biggestUnits.shp, we
 launch the GUI and in the blue (basic chain units) field, 
 navigate to the basicUnits.shp file. This file has a column 
 called **ID** that gives a unique identifier for each unit in 
-the file. Type ``ID`` into the ``Column Name`` field for basic chain units. 
+the file. Type **ID** into the ``Column Name`` field for basic chain units. 
 
 Now use the biggestUnits.shp file in the green field with 
-the unique identifier column **BID** and click ``Roundoff``
+the unique identifier column **BID** and click ``Roundoff!``
 
 This generates the report and shapefile! 
 
@@ -131,9 +131,9 @@ name for each shapefile that will uniquely identify each element
 so that the assigning of vote values to each element is well-defined. 
 
 The process returns a new shapefile based on the original 
-**basic chain units** shapefile with added vote data that has been 
+``basic chain units`` shapefile with added vote data that has been 
 assigned proportionally by area of overlap from the 
-file specified in **units with data to prorate**. It also creates 
+file specified in ``units with data to prorate``. It also creates 
 a report that tallies the prorated data in each shapefile to make sure 
 that no data was lost, and generates graphics of the results. 
 
@@ -147,14 +147,14 @@ Note that biggestUnits.shp has a column called **votes** that
 stores some vote data for a made-up election. This vote data needs 
 to be assigned to the basicUnits.shp units proportionally. 
 
-As before, for the blue **basic chain units** field, 
+As before, for the blue ``basic chain units`` field, 
 use the browse button to choose basicUnits.shp, and 
 use **ID** as the Column Name for a unique ID to add data to. 
 
 Now use the biggestUnits.shp file in the green field with 
 the unique identifier column **BID**. The vote data we want to 
 add is stored in the column **votes**, so type **votes** in the 
-field ``Names of columns to prorate`` and click ``Prorate``
+field ``Names of columns to prorate`` and click ``Prorate!``
 
 This generates the report and shapefile! 
 
