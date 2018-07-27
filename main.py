@@ -139,7 +139,7 @@ def callback(page):
             basicID=basic_geoid, bigID=big_geoid, smallID=small_geoid, 
             smallPopCol=population, lookup=lookupTable)
         basicDF['CD'] = [roundedValues[x] for x in basicDF[basic_geoid]]
-        if 'Null' in basicDF['CD'].tolist():
+        if None in basicDF['CD'].tolist():
             print("WARNING: the following chain units were not aligned with any bigger units:")
             print(mylist)
             print("Check your CRS of each shapefile to see if the maps are aligned")

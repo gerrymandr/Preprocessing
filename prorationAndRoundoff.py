@@ -115,7 +115,7 @@ def roundoffWithDFs(basicDF, bigDF, smallDF=None, basicID=None, bigID=None, smal
     correspondence = {}
     roundedUnits = set(lookup['basicUnits'].tolist())
     for unit in basicDF[basicID]: 
-        maxArea = 'Null'
+        maxArea = None
         if unit in roundedUnits:
             maxArea = lookup['bigUnits'][lookup.loc[lookup['basicUnits'] == unit, 'pop'].idxmax()]
         correspondence[unit] = maxArea
