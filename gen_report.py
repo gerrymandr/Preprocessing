@@ -233,7 +233,7 @@ def prorate_report(
             f.write(f"    <img src='{basicDFPIC}' width=100%/>\n")
             f.write( "  </span>\n")
             f.write("</div>\n")
-            f.write(f"</div>\n")
+            f.write("</br>\n")
 
             if electionDicts is not None:
                 f.write(f"<h2 width:100%> Elections Data:</h2>\n")
@@ -293,6 +293,7 @@ def prorate_report(
                     f.write(f"   <img src='{delectionPlot2}' width=45%/>\n")
                     f.write(f"   <img src='{electionPlot2}'  width=45%/>\n")
                     f.write('</div>\n')
+                f.write("</br>\n")
 
             if voteColumns is not None:
                 f.write(f"<h2 width=100%> Voting Data:</h2>\n")
