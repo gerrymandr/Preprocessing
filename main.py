@@ -106,6 +106,8 @@ def callback(page):
     if page.title == 'Prorate':
         lookupTable = getOverlayBetweenBasicAndLargeBySmall(smallDF, basicDF, bigDF,
                 small_geoid, population, basic_geoid, big_geoid)
+        lookupTable.to_csv("lookupTable.csv")
+
         proratedValues = prorateWithDFs(bigDF, basicDF, big_geoid, basic_geoid,
                 voting, lookupTable, prorateCol='pop')
 
@@ -135,6 +137,7 @@ def callback(page):
         if lookupTable is None:
             lookupTable = getOverlayBetweenBasicAndLargeBySmall(smallDF, basicDF, bigDF,
                     small_geoid, population, basic_geoid, big_geoid)
+        lookupTable.to_csv("lookupTable.csv")
         roundedValues = roundoffWithDFs( basicDF=basicDF, bigDF=bigDF, smallDF=smallDF, 
             basicID=basic_geoid, bigID=big_geoid, smallID=small_geoid, 
             smallPopCol=population, lookup=lookupTable)

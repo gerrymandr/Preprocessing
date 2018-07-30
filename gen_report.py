@@ -238,9 +238,11 @@ def prorate_report(
             if electionDicts is not None:
                 f.write(f"<h2 width:100%> Elections Data:</h2>\n")
                 f.write(f"<table>\n<tr><th></th>" +
-                        "<th>{dataDFName}</th><th>{chainDFName}</th></tr>\n")
+                        f"<th>{bigDF[0]}</th><th>{basicDF[0]}</th></tr>\n")
                 for election in electionDicts.keys():
-                    f.write(f"<h3 width=100%> {election}</h3>\n")
+                    f.write("<tr>\n")
+                    f.write(f"<th colspan="3"> {election} </th>\n")
+                    f.write("</tr>\n")
                     f.write( "<tr>")
                     f.write(f"  <td> Republican Totals </td>\n")
                     f.write( "  <td>" +
@@ -268,19 +270,19 @@ def prorate_report(
                     delectionPlot2 = picsName + 'orig_' + election + 'R' + '.png'
 
                     basicDF[1].plot(column=electionDicts[election]['D'], cmap='Blues')
-                    plt.title(f"prorated to {basicDFName}")
+                    plt.title(f"prorated to {basicDF[0]}")
                     plt.savefig(electionPlot1)
                     plt.clf()
                     bigDF[1].plot(column=electionDicts[election]['D'], cmap='Blues')
-                    plt.title(f"original data source: {bigDFName}")
+                    plt.title(f"original data source: {bigDF[0]}")
                     plt.savefig(delectionPlot1)
                     plt.clf()
                     basicDF[1].plot(column=electionDicts[election]['R'], cmap='Reds')
-                    plt.title(f"prorated to {basicDFName}")
+                    plt.title(f"prorated to {basicDF[0]}")
                     plt.savefig(electionPlot2)
                     plt.clf()
                     bigDF[1].plot(column=electionDicts[election]['R'], cmap='Reds')
-                    plt.title(f"original data source: {bigDFName}")
+                    plt.title(f"original data source: {bigDF[0]}")
                     plt.savefig(delectionPlot2)
                     plt.clf()
 
