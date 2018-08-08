@@ -32,7 +32,7 @@ def check_for_holes(gdf):
     entire_geom = gdf.geometry.unary_union
 
     if type(entire_geom) == MultiPolygon:
-        return [Polygon(list(x.coords)) for x in p.interiors for p in entire_geom.geoms]
+        return [Polygon(list(x.coords)) for p in entire_geom.geoms for x in p.interiors]
 
     elif type(entire_geom) == Polygon:
         return [Polygon(list(x.coords)) for x in entire_geom.interiors]
