@@ -1,3 +1,5 @@
+**Warning! This code is deprecated. See https://github.com/mggg/maup for newer preprocessing tools.**
+
 .. contents::
 
 =========================
